@@ -2,8 +2,8 @@ import { useEffect, useState, useMemo } from "react";
 import {
   useReactTable,
   getCoreRowModel,
-  getFilteredRowModel,
   getSortedRowModel,
+  getFilteredRowModel,
   flexRender,
   createColumnHelper,
   type SortingState,
@@ -33,42 +33,37 @@ import {
   Pencil,
   Trash2,
   ArrowUpDown,
+  ShieldCheck,
 } from "lucide-react";
-import {
-  userService,
-  type User,
-  type CreateUserPayload,
-  type UpdateUserPayload,
-} from "@/services/userService";
-import { UserFormDialog } from "./UserFormDialog";
+import { roleService, type Role } from "@/services/roleService";
+import { RoleFormDialog } from "./RoleFormDialog";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import { useAppSelector } from "@/hooks/useAppSelector";
 
-const columnHelper = createColumnHelper<User>();
+const columnHelper = createColumnHelper<Role>();
 
-export const UsersPage = () => {
-  const isSuperAdmin = useAppSelector(
-    (state) => state.auth.user?.is_super_admin,
-  );
+export const RolesPage = () => {
+  const user = useAppSelector((state) => state.auth.user);
 
-  const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [formLoading, setFormLoading] = useState(false);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [deletingRole, setDeletingRole] = useState<Role | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
-  const fetchUsers = async () => {
+  const fetchRoles = async () => {
     try {
       setLoading(true);
-      const data = await userService.getAll();
-      setUsers(data);
+      const data = await roleService.getAll();
+      setRoles(data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -77,41 +72,56 @@ export const UsersPage = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchRoles();
   }, []);
 
-  const handleCreate = async (data: CreateUserPayload | UpdateUserPayload) => {
+  const handleCreate = async (data: {
+    name: string;
+    description: string;
+    restaurant_id: number;
+  }) => {
     setFormLoading(true);
     try {
-      await userService.create(data as CreateUserPayload);
-      await fetchUsers();
+      await roleService.create(data);
+      await fetchRoles();
       setFormOpen(false);
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleUpdate = async (data: CreateUserPayload | UpdateUserPayload) => {
-    if (!editingUser) return;
+  const handleUpdate = async (data: {
+    name: string;
+    description: string;
+    restaurant_id: number;
+  }) => {
+    if (!editingRole) return;
     setFormLoading(true);
     try {
-      await userService.update(editingUser.id, data as UpdateUserPayload);
-      await fetchUsers();
+      await roleService.update(editingRole.id, {
+        name: data.name,
+        description: data.description,
+      });
+      await fetchRoles();
       setFormOpen(false);
-      setEditingUser(null);
+      setEditingRole(null);
     } finally {
       setFormLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!deletingUser) return;
+    if (!deletingRole) return;
     setDeleteLoading(true);
+    setDeleteError("");
     try {
-      await userService.delete(deletingUser.id);
-      await fetchUsers();
+      await roleService.delete(deletingRole.id);
+      await fetchRoles();
       setDeleteOpen(false);
-      setDeletingUser(null);
+      setDeletingRole(null);
+    } catch (err: any) {
+      // don't close dialog — show error inside it
+      setDeleteError(err.response?.data?.message || "Failed to delete role");
     } finally {
       setDeleteLoading(false);
     }
@@ -127,48 +137,51 @@ export const UsersPage = () => {
             onClick={() => column.toggleSorting()}
             className='gap-1 px-0 font-medium'
           >
-            Name <ArrowUpDown className='w-3.5 h-3.5' />
+            Role Name <ArrowUpDown className='w-3.5 h-3.5' />
           </Button>
         ),
         cell: (info) => (
-          <div className='font-medium text-foreground'>{info.getValue()}</div>
+          <div className='flex items-center gap-2'>
+            <ShieldCheck className='w-4 h-4 text-muted-foreground flex-shrink-0' />
+            <span className='font-medium text-foreground capitalize'>
+              {info.getValue()}
+            </span>
+            {info.row.original.is_default && (
+              <Badge variant='secondary' className='text-xs'>
+                Default
+              </Badge>
+            )}
+          </div>
         ),
       }),
-      columnHelper.accessor("email", {
-        header: "Email",
+
+      columnHelper.accessor("description", {
+        header: "Description",
         cell: (info) => (
-          <span className='text-muted-foreground'>{info.getValue()}</span>
+          <span className='text-sm text-muted-foreground'>
+            {info.getValue() || "—"}
+          </span>
         ),
-      }),
-      columnHelper.accessor("role_name", {
-        header: "Role",
-        cell: (info) => (
-          <Badge variant='secondary' className='capitalize'>
-            {info.getValue()}
-          </Badge>
-        ),
-      }),
-      columnHelper.accessor("branch_name", {
-        header: "Branch",
-        cell: (info) => <span className='text-sm'>{info.getValue()}</span>,
       }),
       columnHelper.accessor("restaurant_name", {
         header: "Restaurant",
-        cell: (info) => <span className='text-sm'>{info.getValue()}</span>,
-      }),
-      columnHelper.accessor("is_active", {
-        header: "Status",
-        cell: (info) =>
-          info.getValue() ? (
-            <Badge className='bg-green-500/10 text-green-600 hover:bg-green-500/20 border-0'>
-              Active
-            </Badge>
-          ) : (
-            <Badge variant='destructive'>Inactive</Badge>
-          ),
+        cell: (info) => (
+          <span className='text-sm text-muted-foreground'>
+            {info.getValue() || "—"}
+          </span>
+        ),
       }),
       columnHelper.accessor("created_at", {
-        header: "Joined",
+        header: ({ column }) => (
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={() => column.toggleSorting()}
+            className='gap-1 px-0 font-medium'
+          >
+            Created <ArrowUpDown className='w-3.5 h-3.5' />
+          </Button>
+        ),
         cell: (info) =>
           new Date(info.getValue()).toLocaleDateString("en-IN", {
             day: "2-digit",
@@ -189,7 +202,7 @@ export const UsersPage = () => {
             <DropdownMenuContent align='end'>
               <DropdownMenuItem
                 onClick={() => {
-                  setEditingUser(row.original);
+                  setEditingRole(row.original);
                   setFormOpen(true);
                 }}
               >
@@ -199,7 +212,8 @@ export const UsersPage = () => {
               <DropdownMenuItem
                 className='text-destructive focus:text-destructive'
                 onClick={() => {
-                  setDeletingUser(row.original);
+                  setDeletingRole(row.original);
+                  setDeleteError("");
                   setDeleteOpen(true);
                 }}
               >
@@ -216,14 +230,13 @@ export const UsersPage = () => {
 
   const filtered = useMemo(
     () =>
-      users.filter(
-        (u) =>
-          u.name.toLowerCase().includes(search.toLowerCase()) ||
-          u.email.toLowerCase().includes(search.toLowerCase()) ||
-          u.role_name.toLowerCase().includes(search.toLowerCase()) ||
-          u.branch_name.toLowerCase().includes(search.toLowerCase()),
+      roles.filter(
+        (r) =>
+          r.name.toLowerCase().includes(search.toLowerCase()) ||
+          r.description?.toLowerCase().includes(search.toLowerCase()) ||
+          r.restaurant_name?.toLowerCase().includes(search.toLowerCase()),
       ),
-    [users, search],
+    [roles, search],
   );
 
   const table = useReactTable({
@@ -241,22 +254,20 @@ export const UsersPage = () => {
       {/* Page header */}
       <div className='flex items-center justify-between'>
         <div>
-          <h2 className='text-xl font-bold text-foreground'>Users</h2>
+          <h2 className='text-xl font-bold text-foreground'>Roles</h2>
           <p className='text-sm text-muted-foreground mt-1'>
-            {isSuperAdmin
-              ? "Manage users across all restaurants."
-              : "Manage users in your restaurant."}
+            Manage roles and permissions for your restaurant.
           </p>
         </div>
         <Button
           onClick={() => {
-            setEditingUser(null);
+            setEditingRole(null);
             setFormOpen(true);
           }}
           className='gap-2'
         >
           <Plus className='w-4 h-4' />
-          Add User
+          Add Role
         </Button>
       </div>
 
@@ -264,11 +275,31 @@ export const UsersPage = () => {
       <div className='relative w-full sm:max-w-xs'>
         <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
         <Input
-          placeholder='Search users...'
+          placeholder='Search roles...'
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className='pl-9'
         />
+      </div>
+
+      {/* Stats */}
+      <div className='flex gap-4'>
+        <div className='text-sm text-muted-foreground'>
+          Total:{" "}
+          <span className='font-medium text-foreground'>{roles.length}</span>
+        </div>
+        <div className='text-sm text-muted-foreground'>
+          Default:{" "}
+          <span className='font-medium text-foreground'>
+            {roles.filter((r) => r.is_default).length}
+          </span>
+        </div>
+        <div className='text-sm text-muted-foreground'>
+          Custom:{" "}
+          <span className='font-medium text-foreground'>
+            {roles.filter((r) => !r.is_default).length}
+          </span>
+        </div>
       </div>
 
       {/* Table */}
@@ -296,7 +327,7 @@ export const UsersPage = () => {
                     colSpan={columns.length}
                     className='text-center py-12 text-muted-foreground'
                   >
-                    Loading users...
+                    Loading roles...
                   </TableCell>
                 </TableRow>
               ) : table.getRowModel().rows.length === 0 ? (
@@ -305,7 +336,7 @@ export const UsersPage = () => {
                     colSpan={columns.length}
                     className='text-center py-12 text-muted-foreground'
                   >
-                    No users found.
+                    No roles found.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -329,32 +360,38 @@ export const UsersPage = () => {
 
       {/* Count */}
       <p className='text-xs text-muted-foreground'>
-        Showing {filtered.length} of {users.length} users
+        Showing {filtered.length} of {roles.length} roles
       </p>
 
       {/* Create / Edit dialog */}
-      <UserFormDialog
+      <RoleFormDialog
         open={formOpen}
         onClose={() => {
           setFormOpen(false);
-          setEditingUser(null);
+          setEditingRole(null);
         }}
-        onSubmit={editingUser ? handleUpdate : handleCreate}
-        editingUser={editingUser}
+        onSubmit={editingRole ? handleUpdate : handleCreate}
+        editingRole={editingRole}
         loading={formLoading}
       />
 
-      {/* Delete dialog */}
+      {/* Delete confirm dialog */}
       <DeleteConfirmDialog
         open={deleteOpen}
         onClose={() => {
           setDeleteOpen(false);
-          setDeletingUser(null);
+          setDeletingRole(null);
+          setDeleteError("");
         }}
         onConfirm={handleDelete}
-        title='Delete User'
-        description={`Are you sure you want to delete ${deletingUser?.name}? This action cannot be undone.`}
+        title='Delete Role'
+        description={
+          deletingRole?.is_default
+            ? `"${deletingRole?.name}" is a default role. Deleting it may affect users assigned to it. Are you sure?`
+            : `Delete role "${deletingRole?.name}"? Users assigned to this role will be affected.`
+        }
         loading={deleteLoading}
+        error={deleteError}
       />
     </div>
   );

@@ -18,9 +18,12 @@ export const Sidebar = () => {
   const user = useAppSelector((state) => state.auth.user);
   const isCollapsed = sidebarMode === "icon";
 
-  const filteredNav = navItems.filter(
-    (item) => user && item.roles.includes(user.role),
-  );
+  const filteredNav = navItems.filter((item) => {
+    if (!user) return false;
+    if (item.superAdminOnly) return user.is_super_admin;
+    if (item.hideForSuperAdmin && user.is_super_admin) return false;
+    return item.roles.includes(user.role);
+  });
 
   const toggleSidebar = () => {
     dispatch(setSidebarMode(isCollapsed ? "default" : "icon"));
@@ -107,7 +110,7 @@ export const Sidebar = () => {
                 {user.name}
               </p>
               <p className='text-xs text-muted-foreground truncate capitalize'>
-                {user.role}
+                {user.is_super_admin ? "Super Admin" : user.role}
               </p>
             </div>
           </div>

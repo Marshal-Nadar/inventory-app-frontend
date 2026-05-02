@@ -1,6 +1,5 @@
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -8,6 +7,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   open: boolean;
@@ -16,6 +16,7 @@ interface Props {
   title?: string;
   description?: string;
   loading?: boolean;
+  error?: string;
 }
 
 export const DeleteConfirmDialog = ({
@@ -25,6 +26,7 @@ export const DeleteConfirmDialog = ({
   title = "Are you sure?",
   description = "This action cannot be undone.",
   loading,
+  error,
 }: Props) => (
   <AlertDialog open={open} onOpenChange={onClose}>
     <AlertDialogContent>
@@ -32,15 +34,19 @@ export const DeleteConfirmDialog = ({
         <AlertDialogTitle>{title}</AlertDialogTitle>
         <AlertDialogDescription>{description}</AlertDialogDescription>
       </AlertDialogHeader>
+
+      {error && (
+        <p className='text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md'>
+          {error}
+        </p>
+      )}
+
       <AlertDialogFooter>
         <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
-        <AlertDialogAction
-          onClick={onConfirm}
-          disabled={loading}
-          className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
-        >
+        {/* Use Button instead of AlertDialogAction to prevent auto-close */}
+        <Button variant='destructive' onClick={onConfirm} disabled={loading}>
           {loading ? "Deleting..." : "Delete"}
-        </AlertDialogAction>
+        </Button>
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>

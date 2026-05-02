@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User, Settings } from "lucide-react";
+import { Badge } from "../ui/badge";
 
 interface HeaderProps {
   title?: string;
@@ -52,7 +53,14 @@ export const Header = ({ title = "Dashboard" }: HeaderProps) => {
           <DropdownMenuContent align='end' className='w-56'>
             <DropdownMenuLabel>
               <div className='flex flex-col space-y-1'>
-                <p className='text-sm font-medium'>{user?.name}</p>
+                <div className='flex items-center gap-2'>
+                  <p className='text-sm font-medium'>{user?.name}</p>
+                  {user?.is_super_admin && (
+                    <Badge variant='secondary' className='text-xs px-1.5 py-0'>
+                      Super Admin
+                    </Badge>
+                  )}
+                </div>
                 <p className='text-xs text-muted-foreground'>{user?.email}</p>
               </div>
             </DropdownMenuLabel>

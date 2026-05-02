@@ -4,6 +4,9 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { SettingsPage } from "@/pages/dashboard/SettingsPage";
 import { UsersPage } from "@/pages/dashboard/users/UsersPage";
+import { RestaurantsPage } from "@/pages/dashboard/restaurants/RestaurantsPage";
+import { BranchesPage } from "@/pages/dashboard/branches/BranchesPage";
+import { RolesPage } from "@/pages/dashboard/roles/RolesPage";
 
 const DashboardHome = () => (
   <div className='space-y-4'>
@@ -11,13 +14,6 @@ const DashboardHome = () => (
     <p className='text-muted-foreground'>
       Dashboard home — coming in next step.
     </p>
-  </div>
-);
-
-const PlaceholderPage = ({ name }: { name: string }) => (
-  <div className='space-y-4'>
-    <h2 className='text-2xl font-bold text-foreground'>{name}</h2>
-    <p className='text-muted-foreground'>This page is coming soon.</p>
   </div>
 );
 
@@ -35,12 +31,11 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <DashboardHome /> },
-      { path: "restaurants", element: <PlaceholderPage name='Restaurants' /> },
-      { path: "branches", element: <PlaceholderPage name='Branches' /> },
-      // { path: "users", element: <PlaceholderPage name='Users' /> },
-      { path: "roles", element: <PlaceholderPage name='Roles' /> },
-      { path: "settings", element: <SettingsPage /> },
+      { path: "restaurants", element: <RestaurantsPage /> },
+      { path: "branches", element: <BranchesPage /> },
       { path: "users", element: <UsersPage /> },
+      { path: "roles", element: <RolesPage /> },
+      { path: "settings", element: <SettingsPage /> },
     ],
   },
   {

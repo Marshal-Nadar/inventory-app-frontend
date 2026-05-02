@@ -56,7 +56,9 @@ export const UserFormDialog = ({
   useEffect(() => {
     if (open) {
       roleService.getAll().then(setRoles);
-      branchService.getAll().then(setBranches);
+      branchService.getAll().then((data) => {
+        setBranches(data.filter((b) => b.is_active));
+      });
     }
   }, [open]);
 

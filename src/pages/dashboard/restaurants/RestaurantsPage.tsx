@@ -2,8 +2,8 @@ import { useEffect, useState, useMemo } from "react";
 import {
   useReactTable,
   getCoreRowModel,
-  getFilteredRowModel,
   getSortedRowModel,
+  getFilteredRowModel,
   flexRender,
   createColumnHelper,
   type SortingState,
@@ -31,44 +31,41 @@ import {
   Search,
   MoreHorizontal,
   Pencil,
-  Trash2,
+  PowerOff,
+  Power,
   ArrowUpDown,
 } from "lucide-react";
 import {
-  userService,
-  type User,
-  type CreateUserPayload,
-  type UpdateUserPayload,
-} from "@/services/userService";
-import { UserFormDialog } from "./UserFormDialog";
+  restaurantService,
+  type Restaurant,
+} from "@/services/restaurantService";
+import { RestaurantFormDialog } from "./RestaurantFormDialog";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
-import { useAppSelector } from "@/hooks/useAppSelector";
 
-const columnHelper = createColumnHelper<User>();
+const columnHelper = createColumnHelper<Restaurant>();
 
-export const UsersPage = () => {
-  const isSuperAdmin = useAppSelector(
-    (state) => state.auth.user?.is_super_admin,
-  );
-
-  const [users, setUsers] = useState<User[]>([]);
+export const RestaurantsPage = () => {
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(
+    null,
+  );
   const [formLoading, setFormLoading] = useState(false);
 
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deletingUser, setDeletingUser] = useState<User | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deactivateOpen, setDeactivateOpen] = useState(false);
+  const [deactivatingRestaurant, setDeactivatingRestaurant] =
+    useState<Restaurant | null>(null);
+  const [deactivateLoading, setDeactivateLoading] = useState(false);
 
-  const fetchUsers = async () => {
+  const fetchRestaurants = async () => {
     try {
       setLoading(true);
-      const data = await userService.getAll();
-      setUsers(data);
+      const data = await restaurantService.getAll();
+      setRestaurants(data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -77,43 +74,55 @@ export const UsersPage = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchRestaurants();
   }, []);
 
-  const handleCreate = async (data: CreateUserPayload | UpdateUserPayload) => {
+  const handleCreate = async (data: {
+    name: string;
+    slug: string;
+    timezone: string;
+  }) => {
     setFormLoading(true);
     try {
-      await userService.create(data as CreateUserPayload);
-      await fetchUsers();
+      await restaurantService.create(data);
+      await fetchRestaurants();
       setFormOpen(false);
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleUpdate = async (data: CreateUserPayload | UpdateUserPayload) => {
-    if (!editingUser) return;
+  const handleUpdate = async (data: {
+    name: string;
+    slug: string;
+    timezone: string;
+  }) => {
+    if (!editingRestaurant) return;
     setFormLoading(true);
     try {
-      await userService.update(editingUser.id, data as UpdateUserPayload);
-      await fetchUsers();
+      await restaurantService.update(editingRestaurant.id, data);
+      await fetchRestaurants();
       setFormOpen(false);
-      setEditingUser(null);
+      setEditingRestaurant(null);
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!deletingUser) return;
-    setDeleteLoading(true);
+  const handleDeactivate = async () => {
+    if (!deactivatingRestaurant) return;
+    setDeactivateLoading(true);
     try {
-      await userService.delete(deletingUser.id);
-      await fetchUsers();
-      setDeleteOpen(false);
-      setDeletingUser(null);
+      if (deactivatingRestaurant.is_active) {
+        await restaurantService.delete(deactivatingRestaurant.id);
+      } else {
+        await restaurantService.activate(deactivatingRestaurant.id);
+      }
+      await fetchRestaurants();
+      setDeactivateOpen(false);
+      setDeactivatingRestaurant(null);
     } finally {
-      setDeleteLoading(false);
+      setDeactivateLoading(false);
     }
   };
 
@@ -134,27 +143,21 @@ export const UsersPage = () => {
           <div className='font-medium text-foreground'>{info.getValue()}</div>
         ),
       }),
-      columnHelper.accessor("email", {
-        header: "Email",
+      columnHelper.accessor("slug", {
+        header: "Slug",
         cell: (info) => (
-          <span className='text-muted-foreground'>{info.getValue()}</span>
-        ),
-      }),
-      columnHelper.accessor("role_name", {
-        header: "Role",
-        cell: (info) => (
-          <Badge variant='secondary' className='capitalize'>
+          <code className='text-xs bg-muted px-2 py-1 rounded'>
             {info.getValue()}
-          </Badge>
+          </code>
         ),
       }),
-      columnHelper.accessor("branch_name", {
-        header: "Branch",
-        cell: (info) => <span className='text-sm'>{info.getValue()}</span>,
-      }),
-      columnHelper.accessor("restaurant_name", {
-        header: "Restaurant",
-        cell: (info) => <span className='text-sm'>{info.getValue()}</span>,
+      columnHelper.accessor("timezone", {
+        header: "Timezone",
+        cell: (info) => (
+          <span className='text-sm text-muted-foreground'>
+            {info.getValue()}
+          </span>
+        ),
       }),
       columnHelper.accessor("is_active", {
         header: "Status",
@@ -168,7 +171,16 @@ export const UsersPage = () => {
           ),
       }),
       columnHelper.accessor("created_at", {
-        header: "Joined",
+        header: ({ column }) => (
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={() => column.toggleSorting()}
+            className='gap-1 px-0 font-medium'
+          >
+            Created <ArrowUpDown className='w-3.5 h-3.5' />
+          </Button>
+        ),
         cell: (info) =>
           new Date(info.getValue()).toLocaleDateString("en-IN", {
             day: "2-digit",
@@ -189,7 +201,7 @@ export const UsersPage = () => {
             <DropdownMenuContent align='end'>
               <DropdownMenuItem
                 onClick={() => {
-                  setEditingUser(row.original);
+                  setEditingRestaurant(row.original);
                   setFormOpen(true);
                 }}
               >
@@ -197,14 +209,27 @@ export const UsersPage = () => {
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                className='text-destructive focus:text-destructive'
+                className={
+                  row.original.is_active
+                    ? "text-destructive focus:text-destructive"
+                    : "text-green-600 focus:text-green-600"
+                }
                 onClick={() => {
-                  setDeletingUser(row.original);
-                  setDeleteOpen(true);
+                  setDeactivatingRestaurant(row.original);
+                  setDeactivateOpen(true);
                 }}
               >
-                <Trash2 className='mr-2 w-4 h-4' />
-                Delete
+                {row.original.is_active ? (
+                  <>
+                    <PowerOff className='mr-2 w-4 h-4' />
+                    Deactivate
+                  </>
+                ) : (
+                  <>
+                    <Power className='mr-2 w-4 h-4' />
+                    Activate
+                  </>
+                )}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -216,14 +241,12 @@ export const UsersPage = () => {
 
   const filtered = useMemo(
     () =>
-      users.filter(
-        (u) =>
-          u.name.toLowerCase().includes(search.toLowerCase()) ||
-          u.email.toLowerCase().includes(search.toLowerCase()) ||
-          u.role_name.toLowerCase().includes(search.toLowerCase()) ||
-          u.branch_name.toLowerCase().includes(search.toLowerCase()),
+      restaurants.filter(
+        (r) =>
+          r.name.toLowerCase().includes(search.toLowerCase()) ||
+          r.slug.toLowerCase().includes(search.toLowerCase()),
       ),
-    [users, search],
+    [restaurants, search],
   );
 
   const table = useReactTable({
@@ -241,22 +264,20 @@ export const UsersPage = () => {
       {/* Page header */}
       <div className='flex items-center justify-between'>
         <div>
-          <h2 className='text-xl font-bold text-foreground'>Users</h2>
+          <h2 className='text-xl font-bold text-foreground'>Restaurants</h2>
           <p className='text-sm text-muted-foreground mt-1'>
-            {isSuperAdmin
-              ? "Manage users across all restaurants."
-              : "Manage users in your restaurant."}
+            Manage all restaurants on the platform.
           </p>
         </div>
         <Button
           onClick={() => {
-            setEditingUser(null);
+            setEditingRestaurant(null);
             setFormOpen(true);
           }}
           className='gap-2'
         >
           <Plus className='w-4 h-4' />
-          Add User
+          Add Restaurant
         </Button>
       </div>
 
@@ -264,11 +285,33 @@ export const UsersPage = () => {
       <div className='relative w-full sm:max-w-xs'>
         <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
         <Input
-          placeholder='Search users...'
+          placeholder='Search restaurants...'
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className='pl-9'
         />
+      </div>
+
+      {/* Stats */}
+      <div className='flex gap-4'>
+        <div className='text-sm text-muted-foreground'>
+          Total:{" "}
+          <span className='font-medium text-foreground'>
+            {restaurants.length}
+          </span>
+        </div>
+        <div className='text-sm text-muted-foreground'>
+          Active:{" "}
+          <span className='font-medium text-green-600'>
+            {restaurants.filter((r) => r.is_active).length}
+          </span>
+        </div>
+        <div className='text-sm text-muted-foreground'>
+          Inactive:{" "}
+          <span className='font-medium text-destructive'>
+            {restaurants.filter((r) => !r.is_active).length}
+          </span>
+        </div>
       </div>
 
       {/* Table */}
@@ -296,7 +339,7 @@ export const UsersPage = () => {
                     colSpan={columns.length}
                     className='text-center py-12 text-muted-foreground'
                   >
-                    Loading users...
+                    Loading restaurants...
                   </TableCell>
                 </TableRow>
               ) : table.getRowModel().rows.length === 0 ? (
@@ -305,7 +348,7 @@ export const UsersPage = () => {
                     colSpan={columns.length}
                     className='text-center py-12 text-muted-foreground'
                   >
-                    No users found.
+                    No restaurants found.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -329,32 +372,40 @@ export const UsersPage = () => {
 
       {/* Count */}
       <p className='text-xs text-muted-foreground'>
-        Showing {filtered.length} of {users.length} users
+        Showing {filtered.length} of {restaurants.length} restaurants
       </p>
 
       {/* Create / Edit dialog */}
-      <UserFormDialog
+      <RestaurantFormDialog
         open={formOpen}
         onClose={() => {
           setFormOpen(false);
-          setEditingUser(null);
+          setEditingRestaurant(null);
         }}
-        onSubmit={editingUser ? handleUpdate : handleCreate}
-        editingUser={editingUser}
+        onSubmit={editingRestaurant ? handleUpdate : handleCreate}
+        editingRestaurant={editingRestaurant}
         loading={formLoading}
       />
 
-      {/* Delete dialog */}
+      {/* Deactivate confirm dialog */}
       <DeleteConfirmDialog
-        open={deleteOpen}
+        open={deactivateOpen}
         onClose={() => {
-          setDeleteOpen(false);
-          setDeletingUser(null);
+          setDeactivateOpen(false);
+          setDeactivatingRestaurant(null);
         }}
-        onConfirm={handleDelete}
-        title='Delete User'
-        description={`Are you sure you want to delete ${deletingUser?.name}? This action cannot be undone.`}
-        loading={deleteLoading}
+        onConfirm={handleDeactivate}
+        title={
+          deactivatingRestaurant?.is_active
+            ? "Deactivate Restaurant"
+            : "Activate Restaurant"
+        }
+        description={
+          deactivatingRestaurant?.is_active
+            ? `Are you sure you want to deactivate ${deactivatingRestaurant?.name}? This will affect all branches and users.`
+            : `Reactivate ${deactivatingRestaurant?.name}?`
+        }
+        loading={deactivateLoading}
       />
     </div>
   );

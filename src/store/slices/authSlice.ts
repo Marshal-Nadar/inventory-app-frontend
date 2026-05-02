@@ -8,6 +8,7 @@ export interface AuthUser {
   branch: string;
   branch_id: number;
   restaurant_id: number;
+  is_super_admin: boolean;
 }
 
 interface AuthState {
