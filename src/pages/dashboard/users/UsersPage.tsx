@@ -34,6 +34,7 @@ import {
   Trash2,
   ArrowUpDown,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   userService,
   type User,
@@ -86,6 +87,10 @@ export const UsersPage = () => {
       await userService.create(data as CreateUserPayload);
       await fetchUsers();
       setFormOpen(false);
+      toast.success("User created successfully");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to create user");
+      throw err;
     } finally {
       setFormLoading(false);
     }
@@ -99,6 +104,10 @@ export const UsersPage = () => {
       await fetchUsers();
       setFormOpen(false);
       setEditingUser(null);
+      toast.success("User updated successfully");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to update user");
+      throw err;
     } finally {
       setFormLoading(false);
     }
@@ -112,6 +121,9 @@ export const UsersPage = () => {
       await fetchUsers();
       setDeleteOpen(false);
       setDeletingUser(null);
+      toast.success(`${deletingUser.name} has been deactivated`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to delete user");
     } finally {
       setDeleteLoading(false);
     }

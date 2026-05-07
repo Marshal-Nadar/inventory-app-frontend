@@ -7,15 +7,13 @@ import { UsersPage } from "@/pages/dashboard/users/UsersPage";
 import { RestaurantsPage } from "@/pages/dashboard/restaurants/RestaurantsPage";
 import { BranchesPage } from "@/pages/dashboard/branches/BranchesPage";
 import { RolesPage } from "@/pages/dashboard/roles/RolesPage";
-
-const DashboardHome = () => (
-  <div className='space-y-4'>
-    <h2 className='text-2xl font-bold text-foreground'>Welcome back 👋</h2>
-    <p className='text-muted-foreground'>
-      Dashboard home — coming in next step.
-    </p>
-  </div>
-);
+import { DashboardHome } from "@/pages/dashboard/DashboardHome";
+import { RawMaterialsPage } from "@/pages/dashboard/rawMaterials/RawMaterialsPage";
+import { VendorsPage } from "@/pages/dashboard/vendors/VendorsPage";
+import { PurchasesPage } from "@/pages/dashboard/purchases/PurchasesPage";
+import { PurchaseForm } from "@/pages/dashboard/purchases/PurchaseForm";
+import { PurchaseDetailPage } from "@/pages/dashboard/purchases/PurchaseDetailPage";
+import { PurchaseReportPage } from "@/pages/dashboard/purchases/PurchaseReportPage";
 
 export const router = createBrowserRouter([
   {
@@ -35,6 +33,12 @@ export const router = createBrowserRouter([
       { path: "branches", element: <BranchesPage /> },
       { path: "users", element: <UsersPage /> },
       { path: "roles", element: <RolesPage /> },
+      { path: "raw-materials", element: <RawMaterialsPage /> },
+      { path: "vendors", element: <VendorsPage /> },
+      { path: "purchases", element: <PurchasesPage /> },
+      { path: "purchases/new", element: <PurchaseForm /> },
+      { path: "purchases/:id", element: <PurchaseDetailPage /> },
+      { path: "purchases/purchase-report", element: <PurchaseReportPage /> },
       { path: "settings", element: <SettingsPage /> },
     ],
   },

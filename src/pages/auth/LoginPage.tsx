@@ -7,6 +7,7 @@ import { setColorMode } from "@/store/slices/themeSlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -30,18 +31,14 @@ export const LoginPage = () => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       const response = await axios.post(
         "http://localhost:3001/api/auth/login",
-        {
-          email,
-          password,
-        },
+        { email, password },
       );
-
       const { token, user } = response.data.data;
       dispatch(setCredentials({ token, user }));
+      toast.success(`Welcome back, ${user.name.split(" ")[0]}!`);
       navigate("/dashboard");
     } catch (err: any) {
       setError(err.response?.data?.message || "Something went wrong");

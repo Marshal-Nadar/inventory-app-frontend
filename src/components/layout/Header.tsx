@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User, Settings } from "lucide-react";
 import { Badge } from "../ui/badge";
+import { toast } from "sonner";
 
 interface HeaderProps {
   title?: string;
@@ -27,6 +28,7 @@ export const Header = ({ title = "Dashboard" }: HeaderProps) => {
 
   const handleLogout = () => {
     dispatch(logout());
+    toast.success("Logged out successfully");
     navigate("/login");
   };
 

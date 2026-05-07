@@ -5,8 +5,20 @@ import {
   Users,
   ShieldCheck,
   Settings,
+  PackageSearch,
+  Truck,
+  ShoppingCart,
+  Plus,
+  List,
+  BarChart2,
   type LucideIcon,
 } from "lucide-react";
+
+export interface NavChild {
+  label: string;
+  path: string;
+  icon: LucideIcon;
+}
 
 export interface NavItem {
   label: string;
@@ -15,6 +27,7 @@ export interface NavItem {
   roles: string[];
   superAdminOnly?: boolean;
   hideForSuperAdmin?: boolean;
+  children?: NavChild[];
 }
 
 export const navItems: NavItem[] = [
@@ -49,6 +62,41 @@ export const navItems: NavItem[] = [
     path: "/dashboard/roles",
     icon: ShieldCheck,
     roles: ["admin", "super_admin"],
+  },
+  {
+    label: "Raw Materials",
+    path: "/dashboard/raw-materials",
+    icon: PackageSearch,
+    roles: ["admin", "manager", "supervisor", "super_admin"],
+  },
+  {
+    label: "Vendors",
+    path: "/dashboard/vendors",
+    icon: Truck,
+    roles: ["admin", "manager", "supervisor", "super_admin"],
+  },
+  {
+    label: "Purchases",
+    path: "/dashboard/purchases",
+    icon: ShoppingCart,
+    roles: ["admin", "manager", "supervisor", "super_admin"],
+    children: [
+      {
+        label: "New Purchase",
+        path: "/dashboard/purchases/new",
+        icon: Plus,
+      },
+      {
+        label: "All Purchases",
+        path: "/dashboard/purchases",
+        icon: List,
+      },
+      {
+        label: "Purchase Report",
+        path: "/dashboard/purchases/purchase-report",
+        icon: BarChart2,
+      },
+    ],
   },
   {
     label: "Settings",

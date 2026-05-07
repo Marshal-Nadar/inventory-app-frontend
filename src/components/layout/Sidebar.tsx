@@ -1,4 +1,5 @@
-import { NavLink } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { navItems } from "@/config/navigation";
 import { useAppSelector } from "@/hooks/useAppSelector";
@@ -10,13 +11,24 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ChevronLeft, ChevronRight, UtensilsCrossed } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  UtensilsCrossed,
+} from "lucide-react";
 
 export const Sidebar = () => {
   const dispatch = useAppDispatch();
+  const location = useLocation();
   const sidebarMode = useAppSelector((state) => state.theme.sidebarMode);
   const user = useAppSelector((state) => state.auth.user);
   const isCollapsed = sidebarMode === "icon";
+
+  // track which parent nav items are expanded
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({
+    "/dashboard/purchases": true,
+  });
 
   const filteredNav = navItems.filter((item) => {
     if (!user) return false;
@@ -24,6 +36,19 @@ export const Sidebar = () => {
     if (item.hideForSuperAdmin && user.is_super_admin) return false;
     return item.roles.includes(user.role);
   });
+
+  const toggleExpand = (path: string) => {
+    setExpanded((prev) => ({ ...prev, [path]: !prev[path] }));
+  };
+
+  const isParentActive = (item: (typeof navItems)[0]) => {
+    if (item.children) {
+      return item.children.some((child) =>
+        location.pathname.startsWith(child.path),
+      );
+    }
+    return location.pathname === item.path;
+  };
 
   const toggleSidebar = () => {
     dispatch(setSidebarMode(isCollapsed ? "default" : "icon"));
@@ -57,43 +82,111 @@ export const Sidebar = () => {
       <nav className='flex-1 py-4 px-2 space-y-1 overflow-y-auto overflow-x-hidden'>
         {filteredNav.map((item) => {
           const Icon = item.icon;
-          return isCollapsed ? (
-            <Tooltip key={item.path} delayDuration={0}>
-              <TooltipTrigger asChild>
+          const hasChildren = !!item.children;
+          const isExpanded = expanded[item.path];
+          const parentActive = isParentActive(item);
+
+          if (isCollapsed) {
+            return (
+              <Tooltip key={item.path} delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <NavLink
+                    to={hasChildren ? item.children![1].path : item.path}
+                    end={item.path === "/dashboard"}
+                    className={({ isActive }) =>
+                      cn(
+                        "flex items-center justify-center w-10 h-10 mx-auto rounded-md transition-colors",
+                        isActive || parentActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                      )
+                    }
+                  >
+                    <Icon className='w-5 h-5 flex-shrink-0' />
+                  </NavLink>
+                </TooltipTrigger>
+                <TooltipContent side='right'>{item.label}</TooltipContent>
+              </Tooltip>
+            );
+          }
+
+          return (
+            <div key={item.path}>
+              {hasChildren ? (
+                // expandable parent
+                <button
+                  onClick={() => toggleExpand(item.path)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 h-10 rounded-md text-sm transition-colors w-full",
+                    parentActive
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                  )}
+                >
+                  <Icon className='w-5 h-5 flex-shrink-0' />
+                  <span className='flex-1 truncate text-left'>
+                    {item.label}
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "w-4 h-4 flex-shrink-0 transition-transform duration-200",
+                      isExpanded ? "rotate-180" : "",
+                    )}
+                  />
+                </button>
+              ) : (
+                // regular nav link
                 <NavLink
                   to={item.path}
                   end={item.path === "/dashboard"}
                   className={({ isActive }) =>
                     cn(
-                      "flex items-center justify-center w-10 h-10 mx-auto rounded-md transition-colors",
+                      "flex items-center gap-3 px-3 h-10 rounded-md text-sm transition-colors",
                       isActive
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-primary text-primary-foreground font-medium"
                         : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                     )
                   }
                 >
                   <Icon className='w-5 h-5 flex-shrink-0' />
+                  <span className='truncate'>{item.label}</span>
                 </NavLink>
-              </TooltipTrigger>
-              <TooltipContent side='right'>{item.label}</TooltipContent>
-            </Tooltip>
-          ) : (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === "/dashboard"}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 px-3 h-10 rounded-md text-sm transition-colors",
-                  isActive
-                    ? "bg-primary text-primary-foreground font-medium"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                )
-              }
-            >
-              <Icon className='w-5 h-5 flex-shrink-0' />
-              <span className='truncate'>{item.label}</span>
-            </NavLink>
+              )}
+
+              {/* Children */}
+              {hasChildren && (
+                <div
+                  className={cn(
+                    "ml-4 border-l pl-3 overflow-hidden transition-all duration-300 ease-in-out",
+                    isExpanded
+                      ? "max-h-40 opacity-100 mt-1 space-y-1"
+                      : "max-h-0 opacity-0",
+                  )}
+                >
+                  {item.children!.map((child) => {
+                    const ChildIcon = child.icon;
+                    return (
+                      <NavLink
+                        key={child.path}
+                        to={child.path}
+                        end={child.path === "/dashboard/purchases"}
+                        className={({ isActive }) =>
+                          cn(
+                            "flex items-center gap-3 px-3 h-9 rounded-md text-sm transition-colors",
+                            isActive
+                              ? "bg-primary text-primary-foreground font-medium"
+                              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                          )
+                        }
+                      >
+                        <ChildIcon className='w-4 h-4 flex-shrink-0' />
+                        <span className='truncate'>{child.label}</span>
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
       </nav>

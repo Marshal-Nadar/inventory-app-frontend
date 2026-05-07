@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +88,10 @@ export const RestaurantsPage = () => {
       await restaurantService.create(data);
       await fetchRestaurants();
       setFormOpen(false);
+      toast.success("Restaurant created successfully");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to create restaurant");
+      throw err;
     } finally {
       setFormLoading(false);
     }
@@ -104,6 +109,10 @@ export const RestaurantsPage = () => {
       await fetchRestaurants();
       setFormOpen(false);
       setEditingRestaurant(null);
+      toast.success("Restaurant updated successfully");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to update restaurant");
+      throw err;
     } finally {
       setFormLoading(false);
     }
@@ -115,12 +124,16 @@ export const RestaurantsPage = () => {
     try {
       if (deactivatingRestaurant.is_active) {
         await restaurantService.delete(deactivatingRestaurant.id);
+        toast.success(`${deactivatingRestaurant.name} deactivated`);
       } else {
         await restaurantService.activate(deactivatingRestaurant.id);
+        toast.success(`${deactivatingRestaurant.name} activated`);
       }
       await fetchRestaurants();
       setDeactivateOpen(false);
       setDeactivatingRestaurant(null);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Operation failed");
     } finally {
       setDeactivateLoading(false);
     }

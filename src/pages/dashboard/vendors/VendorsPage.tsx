@@ -16,10 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -34,37 +32,45 @@ import {
   Pencil,
   Trash2,
   ArrowUpDown,
-  ShieldCheck,
+  Truck,
 } from "lucide-react";
-import { roleService, type Role } from "@/services/roleService";
-import { RoleFormDialog } from "./RoleFormDialog";
+import {
+  vendorService,
+  type Vendor,
+  type VendorPayload,
+} from "@/services/vendorService";
+import { VendorFormDialog } from "./VendorFormDialog";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import { useAppSelector } from "@/hooks/useAppSelector";
+import { toast } from "sonner";
 
-const columnHelper = createColumnHelper<Role>();
+const PERMITTED_ROLES = ["admin", "manager", "supervisor"];
 
-export const RolesPage = () => {
+const columnHelper = createColumnHelper<Vendor>();
+
+export const VendorsPage = () => {
   const user = useAppSelector((state) => state.auth.user);
+  const canMutate =
+    user?.is_super_admin || PERMITTED_ROLES.includes(user?.role || "");
 
-  const [roles, setRoles] = useState<Role[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
   const [formLoading, setFormLoading] = useState(false);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deletingRole, setDeletingRole] = useState<Role | null>(null);
+  const [deletingVendor, setDeletingVendor] = useState<Vendor | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [deleteError, setDeleteError] = useState("");
 
-  const fetchRoles = async () => {
+  const fetchVendors = async () => {
     try {
       setLoading(true);
-      const data = await roleService.getAll();
-      setRoles(data);
+      const data = await vendorService.getAll();
+      setVendors(data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -73,46 +79,35 @@ export const RolesPage = () => {
   };
 
   useEffect(() => {
-    fetchRoles();
+    fetchVendors();
   }, []);
 
-  const handleCreate = async (data: {
-    name: string;
-    description: string;
-    restaurant_id: number;
-  }) => {
+  const handleCreate = async (data: VendorPayload) => {
     setFormLoading(true);
     try {
-      await roleService.create(data);
-      await fetchRoles();
+      await vendorService.create(data);
+      await fetchVendors();
       setFormOpen(false);
-      toast.success("Role created successfully");
+      toast.success("Vendor added successfully");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to create role");
+      toast.error(err.response?.data?.message || "Failed to add vendor");
       throw err;
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleUpdate = async (data: {
-    name: string;
-    description: string;
-    restaurant_id: number;
-  }) => {
-    if (!editingRole) return;
+  const handleUpdate = async (data: VendorPayload) => {
+    if (!editingVendor) return;
     setFormLoading(true);
     try {
-      await roleService.update(editingRole.id, {
-        name: data.name,
-        description: data.description,
-      });
-      await fetchRoles();
+      await vendorService.update(editingVendor.id, data);
+      await fetchVendors();
       setFormOpen(false);
-      setEditingRole(null);
-      toast.success("Role updated successfully");
+      setEditingVendor(null);
+      toast.success("Vendor updated successfully");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to update role");
+      toast.error(err.response?.data?.message || "Failed to update vendor");
       throw err;
     } finally {
       setFormLoading(false);
@@ -120,17 +115,16 @@ export const RolesPage = () => {
   };
 
   const handleDelete = async () => {
-    if (!deletingRole) return;
+    if (!deletingVendor) return;
     setDeleteLoading(true);
-    setDeleteError("");
     try {
-      await roleService.delete(deletingRole.id);
-      await fetchRoles();
+      await vendorService.delete(deletingVendor.id);
+      await fetchVendors();
       setDeleteOpen(false);
-      setDeletingRole(null);
-      toast.success(`Role "${deletingRole.name}" deleted`);
+      setDeletingVendor(null);
+      toast.success(`${deletingVendor.name} removed`);
     } catch (err: any) {
-      setDeleteError(err.response?.data?.message || "Failed to delete role");
+      toast.error(err.response?.data?.message || "Failed to delete vendor");
     } finally {
       setDeleteLoading(false);
     }
@@ -138,6 +132,13 @@ export const RolesPage = () => {
 
   const columns = useMemo(
     () => [
+      columnHelper.display({
+        id: "serial",
+        header: "S.No",
+        cell: ({ row }) => (
+          <span className='text-sm text-muted-foreground'>{row.index + 1}</span>
+        ),
+      }),
       columnHelper.accessor("name", {
         header: ({ column }) => (
           <Button
@@ -146,24 +147,27 @@ export const RolesPage = () => {
             onClick={() => column.toggleSorting()}
             className='gap-1 px-0 font-medium'
           >
-            Role Name <ArrowUpDown className='w-3.5 h-3.5' />
+            Vendor Name <ArrowUpDown className='w-3.5 h-3.5' />
           </Button>
         ),
         cell: (info) => (
-          <div className='flex items-center gap-2'>
-            <ShieldCheck className='w-4 h-4 text-muted-foreground flex-shrink-0' />
-            <span className='font-medium text-foreground capitalize'>
-              {info.getValue()}
-            </span>
-            {info.row.original.is_default && (
-              <Badge variant='secondary' className='text-xs'>
-                Default
-              </Badge>
-            )}
-          </div>
+          <span className='font-medium text-foreground'>{info.getValue()}</span>
         ),
       }),
-
+      columnHelper.accessor("phone", {
+        header: "Phone",
+        cell: (info) => (
+          <span className='text-sm font-mono'>{info.getValue()}</span>
+        ),
+      }),
+      columnHelper.accessor("address", {
+        header: "Address",
+        cell: (info) => (
+          <span className='text-sm text-muted-foreground'>
+            {info.getValue() || "—"}
+          </span>
+        ),
+      }),
       columnHelper.accessor("description", {
         header: "Description",
         cell: (info) => (
@@ -176,76 +180,61 @@ export const RolesPage = () => {
         header: "Restaurant",
         cell: (info) => (
           <span className='text-sm text-muted-foreground'>
-            {info.getValue() || "—"}
+            {info.getValue()}
           </span>
         ),
-      }),
-      columnHelper.accessor("created_at", {
-        header: ({ column }) => (
-          <Button
-            variant='ghost'
-            size='sm'
-            onClick={() => column.toggleSorting()}
-            className='gap-1 px-0 font-medium'
-          >
-            Created <ArrowUpDown className='w-3.5 h-3.5' />
-          </Button>
-        ),
-        cell: (info) =>
-          new Date(info.getValue()).toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          }),
       }),
       columnHelper.display({
         id: "actions",
         header: "Actions",
-        cell: ({ row }) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant='ghost' size='icon' className='w-8 h-8'>
-                <MoreHorizontal className='w-4 h-4' />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align='end'>
-              <DropdownMenuItem
-                onClick={() => {
-                  setEditingRole(row.original);
-                  setFormOpen(true);
-                }}
-              >
-                <Pencil className='mr-2 w-4 h-4' />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className='text-destructive focus:text-destructive'
-                onClick={() => {
-                  setDeletingRole(row.original);
-                  setDeleteError("");
-                  setDeleteOpen(true);
-                }}
-              >
-                <Trash2 className='mr-2 w-4 h-4' />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ),
+        cell: ({ row }) =>
+          canMutate ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant='ghost' size='icon' className='w-8 h-8'>
+                  <MoreHorizontal className='w-4 h-4' />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align='end'>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setEditingVendor(row.original);
+                    setFormOpen(true);
+                  }}
+                >
+                  <Pencil className='mr-2 w-4 h-4' />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className='text-destructive focus:text-destructive'
+                  onClick={() => {
+                    setDeletingVendor(row.original);
+                    setDeleteOpen(true);
+                  }}
+                >
+                  <Trash2 className='mr-2 w-4 h-4' />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <span className='text-xs text-muted-foreground'>View only</span>
+          ),
       }),
     ],
-    [],
+    [canMutate],
   );
 
   const filtered = useMemo(
     () =>
-      roles.filter(
-        (r) =>
-          r.name.toLowerCase().includes(search.toLowerCase()) ||
-          r.description?.toLowerCase().includes(search.toLowerCase()) ||
-          r.restaurant_name?.toLowerCase().includes(search.toLowerCase()),
+      vendors.filter(
+        (v) =>
+          v.name.toLowerCase().includes(search.toLowerCase()) ||
+          v.phone.includes(search) ||
+          v.address?.toLowerCase().includes(search.toLowerCase()) ||
+          v.restaurant_name?.toLowerCase().includes(search.toLowerCase()),
       ),
-    [roles, search],
+    [vendors, search],
   );
 
   const table = useReactTable({
@@ -263,28 +252,30 @@ export const RolesPage = () => {
       {/* Page header */}
       <div className='flex items-center justify-between'>
         <div>
-          <h2 className='text-xl font-bold text-foreground'>Roles</h2>
+          <h2 className='text-xl font-bold text-foreground'>Vendors</h2>
           <p className='text-sm text-muted-foreground mt-1'>
-            Manage roles and permissions for your restaurant.
+            Manage your restaurant's suppliers and vendors.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingRole(null);
-            setFormOpen(true);
-          }}
-          className='gap-2'
-        >
-          <Plus className='w-4 h-4' />
-          Add Role
-        </Button>
+        {canMutate && (
+          <Button
+            onClick={() => {
+              setEditingVendor(null);
+              setFormOpen(true);
+            }}
+            className='gap-2'
+          >
+            <Plus className='w-4 h-4' />
+            Add Vendor
+          </Button>
+        )}
       </div>
 
       {/* Search */}
       <div className='relative w-full sm:max-w-xs'>
         <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
         <Input
-          placeholder='Search roles...'
+          placeholder='Search vendors...'
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className='pl-9'
@@ -295,19 +286,7 @@ export const RolesPage = () => {
       <div className='flex gap-4'>
         <div className='text-sm text-muted-foreground'>
           Total:{" "}
-          <span className='font-medium text-foreground'>{roles.length}</span>
-        </div>
-        <div className='text-sm text-muted-foreground'>
-          Default:{" "}
-          <span className='font-medium text-foreground'>
-            {roles.filter((r) => r.is_default).length}
-          </span>
-        </div>
-        <div className='text-sm text-muted-foreground'>
-          Custom:{" "}
-          <span className='font-medium text-foreground'>
-            {roles.filter((r) => !r.is_default).length}
-          </span>
+          <span className='font-medium text-foreground'>{vendors.length}</span>
         </div>
       </div>
 
@@ -336,16 +315,30 @@ export const RolesPage = () => {
                     colSpan={columns.length}
                     className='text-center py-12 text-muted-foreground'
                   >
-                    Loading roles...
+                    Loading vendors...
                   </TableCell>
                 </TableRow>
               ) : table.getRowModel().rows.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
-                    className='text-center py-12 text-muted-foreground'
+                    className='text-center py-16'
                   >
-                    No roles found.
+                    <div className='flex flex-col items-center gap-3 text-muted-foreground'>
+                      <Truck className='w-10 h-10 opacity-30' />
+                      <p className='text-sm'>No vendors found.</p>
+                      {canMutate && (
+                        <Button
+                          size='sm'
+                          variant='outline'
+                          onClick={() => setFormOpen(true)}
+                          className='gap-2'
+                        >
+                          <Plus className='w-4 h-4' />
+                          Add your first vendor
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -369,38 +362,32 @@ export const RolesPage = () => {
 
       {/* Count */}
       <p className='text-xs text-muted-foreground'>
-        Showing {filtered.length} of {roles.length} roles
+        Showing {filtered.length} of {vendors.length} vendors
       </p>
 
-      {/* Create / Edit dialog */}
-      <RoleFormDialog
+      {/* Form dialog */}
+      <VendorFormDialog
         open={formOpen}
         onClose={() => {
           setFormOpen(false);
-          setEditingRole(null);
+          setEditingVendor(null);
         }}
-        onSubmit={editingRole ? handleUpdate : handleCreate}
-        editingRole={editingRole}
+        onSubmit={editingVendor ? handleUpdate : handleCreate}
+        editingVendor={editingVendor}
         loading={formLoading}
       />
 
-      {/* Delete confirm dialog */}
+      {/* Delete dialog */}
       <DeleteConfirmDialog
         open={deleteOpen}
         onClose={() => {
           setDeleteOpen(false);
-          setDeletingRole(null);
-          setDeleteError("");
+          setDeletingVendor(null);
         }}
         onConfirm={handleDelete}
-        title='Delete Role'
-        description={
-          deletingRole?.is_default
-            ? `"${deletingRole?.name}" is a default role. Deleting it may affect users assigned to it. Are you sure?`
-            : `Delete role "${deletingRole?.name}"? Users assigned to this role will be affected.`
-        }
+        title='Delete Vendor'
+        description={`Remove "${deletingVendor?.name}"? This cannot be undone.`}
         loading={deleteLoading}
-        error={deleteError}
       />
     </div>
   );

@@ -67,13 +67,14 @@ inventory-app-frontend/
 │   │   ├── common/
 │   │   │   ├── ThemeToggle.tsx              # Reusable light/dark toggle
 │   │   │   └── DeleteConfirmDialog.tsx      # Reusable delete/deactivate modal
+│   │   |    └── Combobox.tsx                 # Reusable searchable combobox (Command + Popover)
 │   │   ├── layout/
 │   │   │   ├── DashboardLayout.tsx          # Sidebar + header + content shell
 │   │   │   ├── Sidebar.tsx                  # Collapsible role-filtered nav
 │   │   │   └── Header.tsx                   # Top bar — title, theme, user menu
 │   │   └── ui/                              # shadcn auto-generated components
 │   ├── config/
-│   │   └── navigation.ts                    # Nav items with role + superAdminOnly config
+│   │   └── navigation.ts                    # Nav items with role + superAdminOnly config, Purchases nav item has `children` array with three sub-items: New Purchase, All Purchases, Vendor Report. Sidebar renders expandable parent with smooth CSS transition animation (max-h-0 → max-h-40, opacity-0 → opacity-100, duration-300). Collapsed sidebar shows single icon with tooltip.
 │   ├── hooks/
 │   │   ├── useAppDispatch.ts                # Typed Redux dispatch
 │   │   ├── useAppSelector.ts                # Typed Redux selector
@@ -84,6 +85,11 @@ inventory-app-frontend/
 │   ├── pages/
 │   │   ├── auth/
 │   │   │   └── LoginPage.tsx                # Login form
+│   |    └── purchases/
+│   |        ├── PurchasesPage.tsx        # List with server-side filters
+│   |       ├── PurchaseForm.tsx         # Multi-row create form
+│   |       ├── PurchaseDetailPage.tsx   # View single purchase + items
+│   |        └── VendorReportPage.tsx     # Vendor spend report by date range
 │   │   └── dashboard/
 │   │       ├── SettingsPage.tsx             # Theme settings panel
 │   │       ├── branches/
@@ -109,6 +115,7 @@ inventory-app-frontend/
 │   │   ├── restaurantService.ts             # Restaurant API calls
 │   │   ├── roleService.ts                   # Role API calls
 │   │   └── userService.ts                   # User API calls
+│   |   ├── purchaseService.ts               # Purchase API calls + vendor report
 │   ├── store/
 │   │   ├── index.ts                         # Redux store
 │   │   └── slices/
@@ -258,6 +265,10 @@ Reusable `<ThemeToggle />` component — Sun/Moon icon button. Available on ever
   /dashboard/users         → UsersPage (admin, manager, super_admin)
   /dashboard/roles         → RolesPage (admin, super_admin)
   /dashboard/settings      → SettingsPage (admin, manager, super_admin)
+  /dashboard/purchases              → PurchasesPage
+  /dashboard/purchases/new          → PurchaseForm
+  /dashboard/purchases/purchase-report → PurchaseReportPage
+  /dashboard/purchases/:id          → PurchaseDetailPage
 ```
 
 ### ProtectedRoute
@@ -351,6 +362,44 @@ const filteredNav = navItems.filter((item) => {
   - Custom roles with no users allowed
 - Stats bar — Total, Default, Custom count
 
+### Purchases Page (`/dashboard/purchases`) — Admin, Manager, Supervisor
+
+**List view:**
+
+- Server-side filtering — all filters call API, no local filtering on large datasets
+- Filter by Vendor (combobox) → Invoice Number auto-populated for selected vendor
+- When invoice selected — purchase date shown as read-only label
+- Stats (Total Purchases, Total Spend) reflect current filter from backend
+- Columns: S.No, Date, Invoice No, Vendor, Storage Room, Restaurant, Total, Actions
+- View Details navigates to detail page
+- Delete with confirmation — cascade removes line items
+
+**New Purchase form (`/dashboard/purchases/new`):**
+
+- Full page form (not a dialog) for better UX with multiple rows
+- Header: date picker, vendor combobox, invoice number, storage room (read-only auto)
+- Multi-row line items: raw material combobox, quantity, metric, price per unit
+- Total Cost per row — auto-calculated (qty × price), disabled input
+- Overall Total — sum of all rows, disabled input
+- Add Row (+) / Remove Row (×) buttons
+- Validates all rows before submit
+
+**Purchase Detail (`/dashboard/purchases/:id`):**
+
+- Read-only view of purchase header and all line items
+- Shows vendor, date, invoice, storage room, notes
+- Line items table with category, quantity, metric, price, total per row
+- Overall total at bottom
+
+### Vendor Report (`/dashboard/purchases/purchase-report`) — Admin, Manager, Supervisor
+
+- Select vendor + start date + end date → Generate Report button
+- Summary cards: Total Purchases, Total Spend, Unique Materials
+- Vendor details: name, phone, first/last purchase date in range
+- Purchases in range table: all invoices with date and total
+- Materials breakdown: grouped by raw material — total qty, metric, total cost
+- No data state when no purchases found in range
+
 ### Settings Page (`/dashboard/settings`)
 
 Full theme configuration. See [Theme System](#theme-system).
@@ -371,12 +420,13 @@ api.interceptors.request.use((config) => {
 
 ### Services
 
-| File                   | Endpoints          | Methods                                           |
-| ---------------------- | ------------------ | ------------------------------------------------- |
-| `restaurantService.ts` | `/api/restaurants` | getAll, getById, create, update, delete, activate |
-| `branchService.ts`     | `/api/branches`    | getAll, getById, create, update, delete, activate |
-| `userService.ts`       | `/api/users`       | getAll, getById, create, update, delete           |
-| `roleService.ts`       | `/api/roles`       | getAll, getById, create, update, delete           |
+| File                   | Endpoints                                          | Methods                                                   |
+| ---------------------- | -------------------------------------------------- | --------------------------------------------------------- |
+| `restaurantService.ts` | `/api/restaurants`                                 | getAll, getById, create, update, delete, activate         |
+| `branchService.ts`     | `/api/branches`                                    | getAll, getById, create, update, delete, activate         |
+| `userService.ts`       | `/api/users`                                       | getAll, getById, create, update, delete                   |
+| `roleService.ts`       | `/api/roles`                                       | getAll, getById, create, update, delete                   |
+| `purchaseService.ts`   | `/api/purchases`, `/api/purchases/purchase-report` | getAll(filters), getById, create, delete, getVendorReport |
 
 ---
 
@@ -387,6 +437,11 @@ api.interceptors.request.use((config) => {
 **`ThemeToggle`** — Sun/Moon button. Dispatches `setColorMode`. Used in Header and LoginPage.
 
 **`DeleteConfirmDialog`** — Uses `Button` instead of `AlertDialogAction` to prevent auto-close on API error. Accepts `error` prop to show inline error inside dialog without closing it.
+
+**`Combobox`** — searchable dropdown built with shadcn Command + Popover.
+Accepts `options`, `value`, `onChange`, `placeholder`, `searchPlaceholder`, `emptyText`.
+Used for vendor selection, raw material selection, and restaurant picker throughout
+the purchase module. Replaces plain Select wherever search is needed.
 
 ### Form Dialogs
 
@@ -460,6 +515,16 @@ Summary cards — total restaurants, branches, users. Recent activity feed.
 ### Menu, Orders, Inventory Pages
 
 Remaining modules following the same CRUD page pattern.
+
+### Inventory Ledger Page
+
+Visual stock levels per raw material. Auto-updated when purchases are created.
+Low stock alerts when quantity falls below reorder level.
+
+### Purchase Edit
+
+Allow editing purchase header (date, notes) without deleting and recreating.
+Line items would require careful handling to avoid double-counting stock.
 
 ### Docker
 

@@ -16,7 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -32,41 +31,59 @@ import {
   Search,
   MoreHorizontal,
   Pencil,
-  PowerOff,
-  Power,
+  Trash2,
   ArrowUpDown,
+  PackageSearch,
 } from "lucide-react";
-import { branchService, type Branch } from "@/services/branchService";
-import { BranchFormDialog } from "./BranchFormDialog";
+import {
+  rawMaterialService,
+  type RawMaterial,
+  type RawMaterialItem,
+} from "@/services/rawMaterialService";
+import { RawMaterialFormDialog } from "./RawMaterialFormDialog";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import { useAppSelector } from "@/hooks/useAppSelector";
+import { toast } from "sonner";
 
-const columnHelper = createColumnHelper<Branch>();
+const PERMITTED_ROLES = ["admin", "manager", "supervisor"];
 
-export const BranchesPage = () => {
+const METRIC_LABELS: Record<string, string> = {
+  kg: "kg",
+  g: "g",
+  l: "l",
+  ml: "ml",
+  unit: "unit",
+};
+
+const columnHelper = createColumnHelper<RawMaterial>();
+
+export const RawMaterialsPage = () => {
   const user = useAppSelector((state) => state.auth.user);
-  const isAdmin = user?.role === "admin";
+  const canMutate =
+    user?.is_super_admin || PERMITTED_ROLES.includes(user?.role || "");
 
-  const [branches, setBranches] = useState<Branch[]>([]);
+  const [materials, setMaterials] = useState<RawMaterial[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
-  const [formLoading, setFormLoading] = useState(false);
-
-  const [deactivateOpen, setDeactivateOpen] = useState(false);
-  const [deactivatingBranch, setDeactivatingBranch] = useState<Branch | null>(
+  const [editingMaterial, setEditingMaterial] = useState<RawMaterial | null>(
     null,
   );
-  const [deactivateLoading, setDeactivateLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
 
-  const fetchBranches = async () => {
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletingMaterial, setDeletingMaterial] = useState<RawMaterial | null>(
+    null,
+  );
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const fetchMaterials = async () => {
     try {
       setLoading(true);
-      const data = await branchService.getAll();
-      setBranches(data);
+      const data = await rawMaterialService.getAll();
+      setMaterials(data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -75,75 +92,97 @@ export const BranchesPage = () => {
   };
 
   useEffect(() => {
-    fetchBranches();
+    fetchMaterials();
   }, []);
 
-  const handleCreate = async (data: {
-    name: string;
-    address: string;
-    phone: string;
-  }) => {
+  const handleCreate = async (
+    items: RawMaterialItem[],
+    restaurantId?: number,
+  ) => {
     setFormLoading(true);
     try {
-      await branchService.create({
-        restaurant_id: user!.restaurant_id,
-        ...data,
-      });
-      await fetchBranches();
+      await rawMaterialService.create(items, restaurantId);
+      await fetchMaterials();
       setFormOpen(false);
-      toast.success("Branch created successfully");
+      toast.success(
+        `${items.length} raw material${items.length > 1 ? "s" : ""} added`,
+      );
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to create branch");
+      toast.error(err.response?.data?.message || "Failed to add raw materials");
       throw err;
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleUpdate = async (data: {
-    name: string;
-    address: string;
-    phone: string;
-  }) => {
-    if (!editingBranch) return;
+  const handleUpdate = async (id: number, item: RawMaterialItem) => {
     setFormLoading(true);
     try {
-      await branchService.update(editingBranch.id, data);
-      await fetchBranches();
+      await rawMaterialService.update(id, item);
+      await fetchMaterials();
       setFormOpen(false);
-      setEditingBranch(null);
-      toast.success("Branch updated successfully");
+      setEditingMaterial(null);
+      toast.success("Raw material updated");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to update branch");
+      toast.error(
+        err.response?.data?.message || "Failed to update raw material",
+      );
       throw err;
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleDeactivate = async () => {
-    if (!deactivatingBranch) return;
-    setDeactivateLoading(true);
+  const handleDelete = async () => {
+    if (!deletingMaterial) return;
+    setDeleteLoading(true);
     try {
-      if (deactivatingBranch.is_active) {
-        await branchService.delete(deactivatingBranch.id);
-        toast.success(`${deactivatingBranch.name} deactivated`);
-      } else {
-        await branchService.activate(deactivatingBranch.id);
-        toast.success(`${deactivatingBranch.name} activated`);
-      }
-      await fetchBranches();
-      setDeactivateOpen(false);
-      setDeactivatingBranch(null);
+      await rawMaterialService.delete(deletingMaterial.id);
+      await fetchMaterials();
+      setDeleteOpen(false);
+      setDeletingMaterial(null);
+      toast.success(`${deletingMaterial.name} removed`);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Operation failed");
+      toast.error(
+        err.response?.data?.message || "Failed to delete raw material",
+      );
     } finally {
-      setDeactivateLoading(false);
+      setDeleteLoading(false);
     }
   };
+
+  // group by category for stats
+  const categories = useMemo(
+    () => [...new Set(materials.map((m) => m.category))],
+    [materials],
+  );
 
   const columns = useMemo(
     () => [
+      columnHelper.display({
+        id: "serial",
+        header: "S.No",
+        cell: ({ row }) => (
+          <span className='text-sm text-muted-foreground'>{row.index + 1}</span>
+        ),
+      }),
+      columnHelper.accessor("category", {
+        header: ({ column }) => (
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={() => column.toggleSorting()}
+            className='gap-1 px-0 font-medium'
+          >
+            Category <ArrowUpDown className='w-3.5 h-3.5' />
+          </Button>
+        ),
+        cell: (info) => (
+          <Badge variant='outline' className='capitalize'>
+            {info.getValue()}
+          </Badge>
+        ),
+      }),
       columnHelper.accessor("name", {
         header: ({ column }) => (
           <Button
@@ -152,11 +191,19 @@ export const BranchesPage = () => {
             onClick={() => column.toggleSorting()}
             className='gap-1 px-0 font-medium'
           >
-            Branch Name <ArrowUpDown className='w-3.5 h-3.5' />
+            Name <ArrowUpDown className='w-3.5 h-3.5' />
           </Button>
         ),
         cell: (info) => (
-          <div className='font-medium text-foreground'>{info.getValue()}</div>
+          <span className='font-medium text-foreground'>{info.getValue()}</span>
+        ),
+      }),
+      columnHelper.accessor("metric", {
+        header: "Metric",
+        cell: (info) => (
+          <Badge variant='secondary'>
+            {METRIC_LABELS[info.getValue()] || info.getValue()}
+          </Badge>
         ),
       }),
       columnHelper.accessor("restaurant_name", {
@@ -167,54 +214,12 @@ export const BranchesPage = () => {
           </span>
         ),
       }),
-      columnHelper.accessor("address", {
-        header: "Address",
-        cell: (info) => (
-          <span className='text-sm text-muted-foreground'>
-            {info.getValue() || "—"}
-          </span>
-        ),
-      }),
-      columnHelper.accessor("phone", {
-        header: "Phone",
-        cell: (info) => (
-          <span className='text-sm'>{info.getValue() || "—"}</span>
-        ),
-      }),
-      columnHelper.accessor("is_active", {
-        header: "Status",
-        cell: (info) =>
-          info.getValue() ? (
-            <Badge className='bg-green-500/10 text-green-600 hover:bg-green-500/20 border-0'>
-              Active
-            </Badge>
-          ) : (
-            <Badge variant='destructive'>Inactive</Badge>
-          ),
-      }),
-      columnHelper.accessor("created_at", {
-        header: ({ column }) => (
-          <Button
-            variant='ghost'
-            size='sm'
-            onClick={() => column.toggleSorting()}
-            className='gap-1 px-0 font-medium'
-          >
-            Created <ArrowUpDown className='w-3.5 h-3.5' />
-          </Button>
-        ),
-        cell: (info) =>
-          new Date(info.getValue()).toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          }),
-      }),
+
       columnHelper.display({
         id: "actions",
         header: "Actions",
         cell: ({ row }) =>
-          isAdmin ? (
+          canMutate ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant='ghost' size='icon' className='w-8 h-8'>
@@ -224,7 +229,7 @@ export const BranchesPage = () => {
               <DropdownMenuContent align='end'>
                 <DropdownMenuItem
                   onClick={() => {
-                    setEditingBranch(row.original);
+                    setEditingMaterial(row.original);
                     setFormOpen(true);
                   }}
                 >
@@ -232,27 +237,14 @@ export const BranchesPage = () => {
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className={
-                    row.original.is_active
-                      ? "text-destructive focus:text-destructive"
-                      : "text-green-600 focus:text-green-600"
-                  }
+                  className='text-destructive focus:text-destructive'
                   onClick={() => {
-                    setDeactivatingBranch(row.original);
-                    setDeactivateOpen(true);
+                    setDeletingMaterial(row.original);
+                    setDeleteOpen(true);
                   }}
                 >
-                  {row.original.is_active ? (
-                    <>
-                      <PowerOff className='mr-2 w-4 h-4' />
-                      Deactivate
-                    </>
-                  ) : (
-                    <>
-                      <Power className='mr-2 w-4 h-4' />
-                      Activate
-                    </>
-                  )}
+                  <Trash2 className='mr-2 w-4 h-4' />
+                  Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -261,18 +253,19 @@ export const BranchesPage = () => {
           ),
       }),
     ],
-    [isAdmin],
+    [canMutate],
   );
 
   const filtered = useMemo(
     () =>
-      branches.filter(
-        (b) =>
-          b.name.toLowerCase().includes(search.toLowerCase()) ||
-          b.restaurant_name?.toLowerCase().includes(search.toLowerCase()) ||
-          b.address?.toLowerCase().includes(search.toLowerCase()),
+      materials.filter(
+        (m) =>
+          m.name.toLowerCase().includes(search.toLowerCase()) ||
+          m.category.toLowerCase().includes(search.toLowerCase()) ||
+          m.metric.toLowerCase().includes(search.toLowerCase()) ||
+          m.restaurant_name?.toLowerCase().includes(search.toLowerCase()),
       ),
-    [branches, search],
+    [materials, search],
   );
 
   const table = useReactTable({
@@ -290,21 +283,21 @@ export const BranchesPage = () => {
       {/* Page header */}
       <div className='flex items-center justify-between'>
         <div>
-          <h2 className='text-xl font-bold text-foreground'>Branches</h2>
+          <h2 className='text-xl font-bold text-foreground'>Raw Materials</h2>
           <p className='text-sm text-muted-foreground mt-1'>
-            Manage branches for your restaurant.
+            Master list of raw materials shared across all branches.
           </p>
         </div>
-        {isAdmin && (
+        {canMutate && (
           <Button
             onClick={() => {
-              setEditingBranch(null);
+              setEditingMaterial(null);
               setFormOpen(true);
             }}
             className='gap-2'
           >
             <Plus className='w-4 h-4' />
-            Add Branch
+            Add Raw Materials
           </Button>
         )}
       </div>
@@ -313,7 +306,7 @@ export const BranchesPage = () => {
       <div className='relative w-full sm:max-w-xs'>
         <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
         <Input
-          placeholder='Search branches...'
+          placeholder='Search materials...'
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className='pl-9'
@@ -324,18 +317,14 @@ export const BranchesPage = () => {
       <div className='flex gap-4'>
         <div className='text-sm text-muted-foreground'>
           Total:{" "}
-          <span className='font-medium text-foreground'>{branches.length}</span>
-        </div>
-        <div className='text-sm text-muted-foreground'>
-          Active:{" "}
-          <span className='font-medium text-green-600'>
-            {branches.filter((b) => b.is_active).length}
+          <span className='font-medium text-foreground'>
+            {materials.length}
           </span>
         </div>
         <div className='text-sm text-muted-foreground'>
-          Inactive:{" "}
-          <span className='font-medium text-destructive'>
-            {branches.filter((b) => !b.is_active).length}
+          Categories:{" "}
+          <span className='font-medium text-foreground'>
+            {categories.length}
           </span>
         </div>
       </div>
@@ -365,16 +354,30 @@ export const BranchesPage = () => {
                     colSpan={columns.length}
                     className='text-center py-12 text-muted-foreground'
                   >
-                    Loading branches...
+                    Loading raw materials...
                   </TableCell>
                 </TableRow>
               ) : table.getRowModel().rows.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
-                    className='text-center py-12 text-muted-foreground'
+                    className='text-center py-16'
                   >
-                    No branches found.
+                    <div className='flex flex-col items-center gap-3 text-muted-foreground'>
+                      <PackageSearch className='w-10 h-10 opacity-30' />
+                      <p className='text-sm'>No raw materials found.</p>
+                      {canMutate && (
+                        <Button
+                          size='sm'
+                          variant='outline'
+                          onClick={() => setFormOpen(true)}
+                          className='gap-2'
+                        >
+                          <Plus className='w-4 h-4' />
+                          Add your first item
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -398,40 +401,33 @@ export const BranchesPage = () => {
 
       {/* Count */}
       <p className='text-xs text-muted-foreground'>
-        Showing {filtered.length} of {branches.length} branches
+        Showing {filtered.length} of {materials.length} items
       </p>
 
-      {/* Create / Edit dialog */}
-      <BranchFormDialog
+      {/* Form dialog */}
+      <RawMaterialFormDialog
         open={formOpen}
         onClose={() => {
           setFormOpen(false);
-          setEditingBranch(null);
+          setEditingMaterial(null);
         }}
-        onSubmit={editingBranch ? handleUpdate : handleCreate}
-        editingBranch={editingBranch}
+        onSubmitCreate={handleCreate}
+        onSubmitUpdate={handleUpdate}
+        editingMaterial={editingMaterial}
         loading={formLoading}
       />
 
-      {/* Deactivate confirm dialog */}
+      {/* Delete dialog */}
       <DeleteConfirmDialog
-        open={deactivateOpen}
+        open={deleteOpen}
         onClose={() => {
-          setDeactivateOpen(false);
-          setDeactivatingBranch(null);
+          setDeleteOpen(false);
+          setDeletingMaterial(null);
         }}
-        onConfirm={handleDeactivate}
-        title={
-          deactivatingBranch?.is_active
-            ? "Deactivate Branch"
-            : "Activate Branch"
-        }
-        description={
-          deactivatingBranch?.is_active
-            ? `Deactivate ${deactivatingBranch?.name}? Users in this branch will lose access.`
-            : `Reactivate ${deactivatingBranch?.name}?`
-        }
-        loading={deactivateLoading}
+        onConfirm={handleDelete}
+        title='Delete Raw Material'
+        description={`Remove "${deletingMaterial?.name}" from the master list? This cannot be undone.`}
+        loading={deleteLoading}
       />
     </div>
   );
