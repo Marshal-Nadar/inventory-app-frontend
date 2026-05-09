@@ -34,6 +34,7 @@ import {
   Eye,
   ArrowUpDown,
   ShoppingCart,
+  Pencil,
 } from "lucide-react";
 import { purchaseService, type Purchase } from "@/services/purchaseService";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
@@ -41,6 +42,7 @@ import { useAppSelector } from "@/hooks/useAppSelector";
 import { toast } from "sonner";
 import { type Vendor, vendorService } from "@/services/vendorService";
 import { Combobox } from "@/components/common/Combobox";
+import { PurchaseEditDialog } from "./PurchaseEditDialog";
 
 const PERMITTED_ROLES = ["admin", "manager", "supervisor"];
 const columnHelper = createColumnHelper<Purchase>();
@@ -68,6 +70,12 @@ export const PurchasesPage = () => {
 
   // table
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  // edit
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingPurchaseId, setEditingPurchaseId] = useState<number | null>(
+    null,
+  );
 
   // delete
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -149,6 +157,7 @@ export const PurchasesPage = () => {
     }
   };
 
+  console.log("editOpeneditOpen", editOpen);
   // ─── Search filter (client side on already-fetched data) ─────────
 
   const filtered = useMemo(
@@ -251,8 +260,19 @@ export const PurchasesPage = () => {
                 }
               >
                 <Eye className='mr-2 w-4 h-4' />
-                View Details
+                View
               </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  console.log("firstsdsdsd", row.original.id, editOpen);
+                  setEditingPurchaseId(row.original.id);
+                  setEditOpen(true);
+                }}
+              >
+                <Pencil className='mr-2 w-4 h-4' />
+                Edit
+              </DropdownMenuItem>
+
               {canMutate && (
                 <DropdownMenuItem
                   className='text-destructive focus:text-destructive'
@@ -505,6 +525,23 @@ export const PurchasesPage = () => {
         title='Delete Purchase'
         description={`Delete invoice "${deletingPurchase?.invoice_number}"? All line items will be removed too.`}
         loading={deleteLoading}
+      />
+
+      <PurchaseEditDialog
+        open={editOpen}
+        onClose={() => {
+          setEditOpen(false);
+          setEditingPurchaseId(null);
+        }}
+        onSuccess={() => {
+          toast.success("Purchase updated successfully");
+
+          fetchPurchases({
+            vendor_id: filterVendor || undefined,
+            invoice_number: filterInvoice || undefined,
+          });
+        }}
+        purchaseId={editingPurchaseId}
       />
     </div>
   );

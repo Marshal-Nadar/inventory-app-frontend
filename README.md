@@ -74,7 +74,7 @@ inventory-app-frontend/
 │   │   │   └── Header.tsx                   # Top bar — title, theme, user menu
 │   │   └── ui/                              # shadcn auto-generated components
 │   ├── config/
-│   │   └── navigation.ts                    # Nav items with role + superAdminOnly config, Purchases nav item has `children` array with three sub-items: New Purchase, All Purchases, Vendor Report. Sidebar renders expandable parent with smooth CSS transition animation (max-h-0 → max-h-40, opacity-0 → opacity-100, duration-300). Collapsed sidebar shows single icon with tooltip.
+│   │   └── navigation.ts                    # Nav items with role + superAdminOnly config, Purchases nav item has `children` array with three sub-items: New Purchase, All Purchases, Purchase Report. Sidebar renders expandable parent with smooth CSS transition animation (max-h-0 → max-h-40, opacity-0 → opacity-100, duration-300). Collapsed sidebar shows single icon with tooltip.
 │   ├── hooks/
 │   │   ├── useAppDispatch.ts                # Typed Redux dispatch
 │   │   ├── useAppSelector.ts                # Typed Redux selector
@@ -115,7 +115,7 @@ inventory-app-frontend/
 │   │   ├── restaurantService.ts             # Restaurant API calls
 │   │   ├── roleService.ts                   # Role API calls
 │   │   └── userService.ts                   # User API calls
-│   |   ├── purchaseService.ts               # Purchase API calls + vendor report
+│   |   ├── purchaseService.ts               # Purchase API calls + purchase report
 │   ├── store/
 │   │   ├── index.ts                         # Redux store
 │   │   └── slices/
@@ -391,7 +391,7 @@ const filteredNav = navItems.filter((item) => {
 - Line items table with category, quantity, metric, price, total per row
 - Overall total at bottom
 
-### Vendor Report (`/dashboard/purchases/purchase-report`) — Admin, Manager, Supervisor
+### Purchase Report (`/dashboard/purchases/purchase-report`) — Admin, Manager, Supervisor
 
 - Select vendor + start date + end date → Generate Report button
 - Summary cards: Total Purchases, Total Spend, Unique Materials

@@ -131,6 +131,14 @@ export const purchaseService = {
     return res.data.data;
   },
 
+  update: async (
+    id: number,
+    payload: CreatePurchasePayload,
+  ): Promise<Purchase> => {
+    const res = await api.put(`/purchases/${id}`, payload);
+    return res.data.data;
+  },
+
   delete: async (id: number): Promise<void> => {
     await api.delete(`/purchases/${id}`);
   },
