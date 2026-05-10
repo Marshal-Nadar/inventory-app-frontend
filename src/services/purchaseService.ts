@@ -142,4 +142,9 @@ export const purchaseService = {
   delete: async (id: number): Promise<void> => {
     await api.delete(`/purchases/${id}`);
   },
+
+  getStockSummary: async (): Promise<any[]> => {
+    const res = await api.get("/purchases/stock-summary");
+    return res.data.data;
+  },
 };

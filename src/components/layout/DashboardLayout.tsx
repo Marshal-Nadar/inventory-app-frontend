@@ -10,6 +10,15 @@ const pageTitles: Record<string, string> = {
   "/dashboard/branches": "Branches",
   "/dashboard/users": "Users",
   "/dashboard/roles": "Roles",
+  "/dashboard/raw-materials": "Raw Materials",
+  "/dashboard/raw-materials/add": "Add Raw Materials",
+  "/dashboard/vendors": "Vendors",
+  "/dashboard/purchases": "All Purchases",
+  "/dashboard/purchases/new": "New Purchase",
+  "/dashboard/purchases/stock-summary": "Stock Summary",
+  "/dashboard/purchases/vendor-report": "Purchase Report",
+  "/dashboard/transfers": "Transfer Requests",
+  "/dashboard/transfers/new": "New Transfer Request",
   "/dashboard/settings": "Settings",
 };
 

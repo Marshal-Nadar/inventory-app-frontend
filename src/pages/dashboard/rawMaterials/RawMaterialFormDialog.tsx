@@ -174,9 +174,7 @@ export const RawMaterialFormDialog = ({
           {/* Column headers */}
           <div className='grid grid-cols-[1fr_1fr_140px_32px] gap-2 px-1'>
             <Label className='text-xs text-muted-foreground'>Category</Label>
-            <Label className='text-xs text-muted-foreground'>
-              Raw Material Name
-            </Label>
+            <Label className='text-xs text-muted-foreground'>Min Stock</Label>
             <Label className='text-xs text-muted-foreground'>Metric</Label>
             <span />
           </div>

@@ -11,6 +11,9 @@ import {
   Plus,
   List,
   BarChart2,
+  Package,
+  ArrowLeftRight,
+  ClipboardList,
   type LucideIcon,
 } from "lucide-react";
 
@@ -68,6 +71,18 @@ export const navItems: NavItem[] = [
     path: "/dashboard/raw-materials",
     icon: PackageSearch,
     roles: ["admin", "manager", "supervisor", "super_admin"],
+    children: [
+      {
+        label: "Add Raw Materials",
+        path: "/dashboard/raw-materials/add",
+        icon: Plus,
+      },
+      {
+        label: "All Raw Materials",
+        path: "/dashboard/raw-materials",
+        icon: List,
+      },
+    ],
   },
   {
     label: "Vendors",
@@ -95,6 +110,37 @@ export const navItems: NavItem[] = [
         label: "Purchase Report",
         path: "/dashboard/purchases/purchase-report",
         icon: BarChart2,
+      },
+      {
+        label: "Stock Summary",
+        path: "/dashboard/purchases/stock-summary",
+        icon: Package,
+      },
+    ],
+  },
+  {
+    label: "Stock Transfer",
+    path: "/dashboard/transfers",
+    icon: ArrowLeftRight,
+    roles: [
+      "admin",
+      "manager",
+      "cashier",
+      "kitchen",
+      "supervisor",
+      "storekeeper",
+      "super_admin",
+    ],
+    children: [
+      {
+        label: "New Request",
+        path: "/dashboard/transfers/new",
+        icon: Plus,
+      },
+      {
+        label: "All Requests",
+        path: "/dashboard/transfers",
+        icon: ClipboardList,
       },
     ],
   },

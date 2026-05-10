@@ -46,8 +46,7 @@ import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { toast } from "sonner";
 
-import { RawMaterialStockEditDialog } from "./RawMaterialStockEditDialog";
-import { StockBadge } from "@/components/common/StockBadge";
+import { RawMaterialLabelEditDialog } from "./RawMaterialLabelEditDialog";
 
 const PERMITTED_ROLES = ["admin", "manager", "supervisor"];
 
@@ -61,7 +60,7 @@ const METRIC_LABELS: Record<string, string> = {
 
 const columnHelper = createColumnHelper<RawMaterial>();
 
-export const RawMaterialsPage = () => {
+export const AddRawMaterialsPage = () => {
   const user = useAppSelector((state) => state.auth.user);
   const navigate = useNavigate();
 
@@ -85,9 +84,7 @@ export const RawMaterialsPage = () => {
   );
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const [stockEditOpen, setStockEditOpen] = useState(false);
-  const [stockEditMaterial, setStockEditMaterial] =
-    useState<RawMaterial | null>(null);
+  const [labelEditOpen, setLabelEditOpen] = useState(false);
 
   const fetchMaterials = async () => {
     try {
@@ -216,25 +213,7 @@ export const RawMaterialsPage = () => {
           </Badge>
         ),
       }),
-      columnHelper.accessor("current_stock", {
-        header: "Current Stock",
-        cell: (info) => (
-          <StockBadge
-            currentStock={Number(info.getValue())}
-            minStock={Number(info.row.original.min_stock)}
-            metric={info.row.original.metric}
-          />
-        ),
-      }),
 
-      columnHelper.accessor("min_stock", {
-        header: "Min Stock",
-        cell: (info) => (
-          <span className='text-sm text-muted-foreground'>
-            {Number(info.getValue())} {info.row.original.metric}
-          </span>
-        ),
-      }),
       columnHelper.accessor("restaurant_name", {
         header: "Restaurant",
         cell: (info) => (
@@ -247,39 +226,20 @@ export const RawMaterialsPage = () => {
       columnHelper.display({
         id: "actions",
         header: "Actions",
-        cell: ({ row }) =>
-          canMutate ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant='ghost' size='icon' className='w-8 h-8'>
-                  <MoreHorizontal className='w-4 h-4' />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align='end'>
-                <DropdownMenuItem
-                  onClick={() => {
-                    setStockEditMaterial(row.original);
-                    setStockEditOpen(true);
-                  }}
-                >
-                  <Pencil className='mr-2 w-4 h-4' />
-                  Set Stock Limit
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className='text-destructive focus:text-destructive'
-                  onClick={() => {
-                    setDeletingMaterial(row.original);
-                    setDeleteOpen(true);
-                  }}
-                >
-                  <Trash2 className='mr-2 w-4 h-4' />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <span className='text-xs text-muted-foreground'>View only</span>
-          ),
+        cell: ({ row }) => (
+          <Button
+            variant='ghost'
+            size='sm'
+            className='gap-1'
+            onClick={() => {
+              setEditingMaterial(row.original);
+              setLabelEditOpen(true);
+            }}
+          >
+            <Pencil className='w-3.5 h-3.5' />
+            Edit
+          </Button>
+        ),
       }),
     ],
     [canMutate],
@@ -319,7 +279,10 @@ export const RawMaterialsPage = () => {
         </div>
         {canMutate && (
           <Button
-            onClick={() => navigate("/dashboard/raw-materials/add")}
+            onClick={() => {
+              setFormOpen(true);
+              setEditingMaterial(null);
+            }}
             className='gap-2'
           >
             <Plus className='w-4 h-4' />
@@ -430,14 +393,26 @@ export const RawMaterialsPage = () => {
         Showing {filtered.length} of {materials.length} items
       </p>
 
-      <RawMaterialStockEditDialog
-        open={stockEditOpen}
+      <RawMaterialFormDialog
+        open={formOpen}
         onClose={() => {
-          setStockEditOpen(false);
-          setStockEditMaterial(null);
+          setFormOpen(false);
+          setEditingMaterial(null);
+        }}
+        onSubmitCreate={handleCreate}
+        onSubmitUpdate={handleUpdate}
+        editingMaterial={editingMaterial}
+        loading={formLoading}
+      />
+
+      <RawMaterialLabelEditDialog
+        open={labelEditOpen}
+        onClose={() => {
+          setLabelEditOpen(false);
+          setEditingMaterial(null);
         }}
         onSuccess={fetchMaterials}
-        material={stockEditMaterial}
+        material={editingMaterial}
       />
 
       {/* Delete dialog */}

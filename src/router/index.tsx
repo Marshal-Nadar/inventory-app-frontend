@@ -14,6 +14,10 @@ import { PurchasesPage } from "@/pages/dashboard/purchases/PurchasesPage";
 import { PurchaseForm } from "@/pages/dashboard/purchases/PurchaseForm";
 import { PurchaseDetailPage } from "@/pages/dashboard/purchases/PurchaseDetailPage";
 import { PurchaseReportPage } from "@/pages/dashboard/purchases/PurchaseReportPage";
+import { AddRawMaterialsPage } from "@/pages/dashboard/rawMaterials/AddRawMaterialsPage";
+import { StockSummaryPage } from "@/pages/dashboard/purchases/StockSummaryPage";
+import { TransferRequestsPage } from "@/pages/dashboard/transfers/TransferRequestsPage";
+import { NewTransferRequestPage } from "@/pages/dashboard/transfers/NewTransferRequestPage";
 
 export const router = createBrowserRouter([
   {
@@ -34,11 +38,15 @@ export const router = createBrowserRouter([
       { path: "users", element: <UsersPage /> },
       { path: "roles", element: <RolesPage /> },
       { path: "raw-materials", element: <RawMaterialsPage /> },
+      { path: "raw-materials/add", element: <AddRawMaterialsPage /> },
       { path: "vendors", element: <VendorsPage /> },
       { path: "purchases", element: <PurchasesPage /> },
       { path: "purchases/new", element: <PurchaseForm /> },
       { path: "purchases/:id", element: <PurchaseDetailPage /> },
       { path: "purchases/purchase-report", element: <PurchaseReportPage /> },
+      { path: "purchases/stock-summary", element: <StockSummaryPage /> },
+      { path: "transfers", element: <TransferRequestsPage /> },
+      { path: "transfers/new", element: <NewTransferRequestPage /> },
       { path: "settings", element: <SettingsPage /> },
     ],
   },

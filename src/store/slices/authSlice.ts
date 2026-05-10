@@ -5,10 +5,11 @@ export interface AuthUser {
   name: string;
   email: string;
   role: string;
-  branch: string;
-  branch_id: number;
-  restaurant_id: number;
+  branch: string | null;
+  branch_id: number | null;
+  restaurant_id: number | null;
   is_super_admin: boolean;
+  can_manage_store: boolean;
 }
 
 interface AuthState {

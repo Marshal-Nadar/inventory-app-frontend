@@ -154,36 +154,46 @@ export const Sidebar = () => {
               )}
 
               {/* Children */}
-              {hasChildren && (
+              {hasChildren && isExpanded && (
                 <div
                   className={cn(
                     "ml-4 border-l pl-3 overflow-hidden transition-all duration-300 ease-in-out",
                     isExpanded
-                      ? "max-h-40 opacity-100 mt-1 space-y-1"
+                      ? "max-h-60 opacity-100 mt-1 space-y-1"
                       : "max-h-0 opacity-0",
                   )}
                 >
-                  {item.children!.map((child) => {
-                    const ChildIcon = child.icon;
-                    return (
-                      <NavLink
-                        key={child.path}
-                        to={child.path}
-                        end={child.path === "/dashboard/purchases"}
-                        className={({ isActive }) =>
-                          cn(
-                            "flex items-center gap-3 px-3 h-9 rounded-md text-sm transition-colors",
-                            isActive
-                              ? "bg-primary text-primary-foreground font-medium"
-                              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                          )
-                        }
-                      >
-                        <ChildIcon className='w-4 h-4 flex-shrink-0' />
-                        <span className='truncate'>{child.label}</span>
-                      </NavLink>
-                    );
-                  })}
+                  {item
+                    .children!.filter((child) => {
+                      // hide New Request for store managers and super admin
+                      if (
+                        child.path === "/dashboard/transfers/new" &&
+                        (user?.can_manage_store || user?.is_super_admin)
+                      )
+                        return false;
+                      return true;
+                    })
+                    .map((child) => {
+                      const ChildIcon = child.icon;
+                      return (
+                        <NavLink
+                          key={child.path}
+                          to={child.path}
+                          end={true}
+                          className={({ isActive }) =>
+                            cn(
+                              "flex items-center gap-3 px-3 h-9 rounded-md text-sm transition-colors",
+                              isActive
+                                ? "bg-primary text-primary-foreground font-medium"
+                                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                            )
+                          }
+                        >
+                          <ChildIcon className='w-4 h-4 flex-shrink-0' />
+                          <span className='truncate'>{child.label}</span>
+                        </NavLink>
+                      );
+                    })}
                 </div>
               )}
             </div>

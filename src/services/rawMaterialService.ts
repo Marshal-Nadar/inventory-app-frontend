@@ -12,12 +12,16 @@ export interface RawMaterial {
   created_by_name: string;
   created_at: string;
   updated_at: string;
+  current_stock: number;
+  min_stock: number;
+  avg_price: number;
 }
 
 export interface RawMaterialItem {
   category: string;
   name: string;
   metric: string;
+  min_stock?: string;
 }
 
 export const rawMaterialService = {
@@ -39,6 +43,16 @@ export const rawMaterialService = {
     payload: RawMaterialItem,
   ): Promise<RawMaterial> => {
     const res = await api.put(`/raw-materials/${id}`, payload);
+    return res.data.data;
+  },
+
+  updateMinStock: async (
+    id: number,
+    minStock: number,
+  ): Promise<RawMaterial> => {
+    const res = await api.patch(`/raw-materials/${id}/min-stock`, {
+      min_stock: minStock,
+    });
     return res.data.data;
   },
 
