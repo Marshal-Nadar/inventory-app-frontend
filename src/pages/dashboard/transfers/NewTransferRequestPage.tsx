@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { ArrowLeftRight, Plus, X } from "lucide-react";
 import { StockBadge } from "@/components/common/StockBadge";
 import { Separator } from "@/components/ui/separator";
+import { branchService, type Branch } from "@/services/branchService";
 
 const METRICS = [
   { value: "kg", label: "Kilogram (kg)" },
@@ -53,10 +54,31 @@ export const NewTransferRequestPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const canManageStore = user?.can_manage_store || user?.is_super_admin;
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState(
+    String(user?.branch_id || ""),
+  );
+
+  const isAdmin = user?.role === "admin" || user?.is_super_admin;
+  const isStorekeeper = user?.role === "storekeeper";
+  const canRaiseForAnyBranch = isAdmin;
+
   useEffect(() => {
     rawMaterialService.getAll().then((data) => {
       setRawMaterials(data.filter((rm) => Number(rm.current_stock) > 0));
     });
+  }, []);
+
+  useEffect(() => {
+    rawMaterialService.getAll().then((data) => {
+      setRawMaterials(data.filter((rm) => Number(rm.current_stock) > 0));
+    });
+    if (canRaiseForAnyBranch) {
+      branchService
+        .getAll()
+        .then((data) => setBranches(data.filter((b) => b.is_active)));
+    }
   }, []);
 
   const addRow = () => setRows((prev) => [...prev, emptyRow()]);
@@ -85,6 +107,11 @@ export const NewTransferRequestPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (canRaiseForAnyBranch && !selectedBranchId) {
+      setError("Please select a branch to request on behalf of");
+      return;
+    }
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
@@ -118,6 +145,7 @@ export const NewTransferRequestPage = () => {
           metric: row.metric,
         })),
         notes,
+        branch_id: canRaiseForAnyBranch ? Number(selectedBranchId) : undefined,
       });
       toast.success("Transfer request submitted successfully");
       navigate("/dashboard/transfers");
@@ -347,6 +375,41 @@ export const NewTransferRequestPage = () => {
             Cancel
           </Button>
         </div>
+
+        {/* Branch selector — admin/storekeeper only */}
+        {canRaiseForAnyBranch && (
+          <div className='flex items-center gap-2 p-3 rounded-md bg-muted'>
+            <ArrowLeftRight className='w-4 h-4 flex-shrink-0 text-muted-foreground' />
+            <div className='flex-1 space-y-1'>
+              <p className='text-xs text-muted-foreground'>
+                Requesting on behalf of branch
+              </p>
+              <Combobox
+                options={branches.map((b) => ({
+                  value: String(b.id),
+                  label: b.name,
+                }))}
+                value={selectedBranchId}
+                onChange={setSelectedBranchId}
+                placeholder='Select branch'
+                searchPlaceholder='Search branches...'
+                emptyText='No branches found.'
+              />
+            </div>
+          </div>
+        )}
+
+        {!canRaiseForAnyBranch && (
+          <div className='flex items-center gap-2 p-3 rounded-md bg-muted text-sm text-muted-foreground'>
+            <ArrowLeftRight className='w-4 h-4 flex-shrink-0' />
+            <span>
+              Requesting for:{" "}
+              <span className='font-medium text-foreground'>
+                {user?.branch}
+              </span>
+            </span>
+          </div>
+        )}
       </form>
     </div>
   );

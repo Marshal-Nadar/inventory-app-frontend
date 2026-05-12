@@ -11,6 +11,7 @@ export interface TransferRequestItem {
   current_stock: number;
   quantity: number;
   metric: string;
+  avg_price: number;
 }
 
 export interface TransferRequest {
@@ -44,6 +45,7 @@ export const transferRequestService = {
       metric: string;
     }[];
     notes?: string;
+    branch_id?: number;
   }): Promise<TransferRequest> => {
     const res = await api.post("/transfer-requests", payload);
     return res.data.data;

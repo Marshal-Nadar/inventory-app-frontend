@@ -18,6 +18,7 @@ import { AddRawMaterialsPage } from "@/pages/dashboard/rawMaterials/AddRawMateri
 import { StockSummaryPage } from "@/pages/dashboard/purchases/StockSummaryPage";
 import { TransferRequestsPage } from "@/pages/dashboard/transfers/TransferRequestsPage";
 import { NewTransferRequestPage } from "@/pages/dashboard/transfers/NewTransferRequestPage";
+import { StockDashboardPage } from "@/pages/dashboard/purchases/StockDashboardPage";
 
 export const router = createBrowserRouter([
   {
@@ -42,6 +43,7 @@ export const router = createBrowserRouter([
       { path: "vendors", element: <VendorsPage /> },
       { path: "purchases", element: <PurchasesPage /> },
       { path: "purchases/new", element: <PurchaseForm /> },
+      { path: "purchases/stock-dashboard", element: <StockDashboardPage /> },
       { path: "purchases/:id", element: <PurchaseDetailPage /> },
       { path: "purchases/purchase-report", element: <PurchaseReportPage /> },
       { path: "purchases/stock-summary", element: <StockSummaryPage /> },

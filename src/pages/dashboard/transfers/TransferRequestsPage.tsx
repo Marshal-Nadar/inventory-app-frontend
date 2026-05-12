@@ -42,6 +42,7 @@ import { RejectDialog } from "./RejectDialog";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
+import { TransferRequestDetailDialog } from "./TransferRequestDetailDialog";
 
 const columnHelper = createColumnHelper<TransferRequest>();
 
@@ -85,6 +86,10 @@ export const TransferRequestsPage = () => {
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [rejectLoading, setRejectLoading] = useState(false);
+
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] =
+    useState<TransferRequest | null>(null);
 
   const fetchRequests = async () => {
     try {
@@ -172,9 +177,9 @@ export const TransferRequestsPage = () => {
         header: "Raw Materials",
         cell: ({ row }) => (
           <div className='space-y-1'>
-            {row.original.items?.map((item, i) => (
+            {row.original.items?.slice(0, 2).map((item, i) => (
               <div key={i} className='flex items-center gap-2'>
-                <span className='text-sm font-medium text-foreground'>
+                <span className='text-sm text-foreground'>
                   {item.raw_material_name}
                 </span>
                 <Badge variant='secondary' className='text-xs'>
@@ -182,6 +187,22 @@ export const TransferRequestsPage = () => {
                 </Badge>
               </div>
             ))}
+            {row.original.items?.length > 2 && (
+              <span className='text-xs text-muted-foreground'>
+                +{row.original.items.length - 2} more
+              </span>
+            )}
+            <Button
+              variant='ghost'
+              size='sm'
+              className='h-7 text-xs gap-1 px-2'
+              onClick={() => {
+                setSelectedRequest(row.original);
+                setDetailOpen(true);
+              }}
+            >
+              View Details
+            </Button>
           </div>
         ),
       }),
@@ -454,6 +475,15 @@ export const TransferRequestsPage = () => {
         }}
         onConfirm={handleReject}
         loading={rejectLoading}
+      />
+
+      <TransferRequestDetailDialog
+        open={detailOpen}
+        onClose={() => {
+          setDetailOpen(false);
+          setSelectedRequest(null);
+        }}
+        request={selectedRequest}
       />
     </div>
   );

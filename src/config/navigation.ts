@@ -14,6 +14,7 @@ import {
   Package,
   ArrowLeftRight,
   ClipboardList,
+  BarChart,
   type LucideIcon,
 } from "lucide-react";
 
@@ -115,6 +116,11 @@ export const navItems: NavItem[] = [
         label: "Stock Summary",
         path: "/dashboard/purchases/stock-summary",
         icon: Package,
+      },
+      {
+        label: "Stock Dashboard",
+        path: "/dashboard/purchases/stock-dashboard",
+        icon: BarChart,
       },
     ],
   },
