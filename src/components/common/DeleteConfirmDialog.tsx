@@ -17,6 +17,8 @@ interface Props {
   description?: string;
   loading?: boolean;
   error?: string;
+  confirmLabel?: string;
+  confirmVariant?: "destructive" | "default";
 }
 
 export const DeleteConfirmDialog = ({
@@ -27,6 +29,8 @@ export const DeleteConfirmDialog = ({
   description = "This action cannot be undone.",
   loading,
   error,
+  confirmLabel = "Delete",
+  confirmVariant = "destructive",
 }: Props) => (
   <AlertDialog open={open} onOpenChange={onClose}>
     <AlertDialogContent>
@@ -43,9 +47,8 @@ export const DeleteConfirmDialog = ({
 
       <AlertDialogFooter>
         <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
-        {/* Use Button instead of AlertDialogAction to prevent auto-close */}
-        <Button variant='destructive' onClick={onConfirm} disabled={loading}>
-          {loading ? "Deleting..." : "Delete"}
+        <Button variant={confirmVariant} onClick={onConfirm} disabled={loading}>
+          {loading ? "Please wait..." : confirmLabel}
         </Button>
       </AlertDialogFooter>
     </AlertDialogContent>

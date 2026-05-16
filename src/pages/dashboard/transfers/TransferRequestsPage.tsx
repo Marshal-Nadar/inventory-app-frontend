@@ -464,6 +464,8 @@ export const TransferRequestsPage = () => {
         title='Approve Transfer Request'
         description='Stock will be deducted from the store and transferred to the branch. This cannot be undone.'
         loading={approveLoading}
+        confirmLabel='Approve'
+        confirmVariant='default'
       />
 
       {/* Reject dialog */}

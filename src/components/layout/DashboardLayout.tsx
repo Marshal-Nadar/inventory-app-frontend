@@ -12,6 +12,9 @@ const pageTitles: Record<string, string> = {
   "/dashboard/roles": "Roles",
   "/dashboard/raw-materials": "Raw Materials",
   "/dashboard/raw-materials/add": "Add Raw Materials",
+  "/dashboard/misc-expense/add": "Add Expense",
+  "/dashboard/misc-expense/list": "Expense List",
+  "/dashboard/misc-expense/types": "Manage Expense Types",
   "/dashboard/vendors": "Vendors",
   "/dashboard/purchases": "All Purchases",
   "/dashboard/purchases/new": "New Purchase",
@@ -20,6 +23,10 @@ const pageTitles: Record<string, string> = {
   "/dashboard/purchases/stock-dashboard": "Stock Dashboard",
   "/dashboard/transfers": "Transfer Requests",
   "/dashboard/transfers/new": "New Transfer Request",
+  "/dashboard/transfers/branch-stock": "Branch Stock View",
+  "/dashboard/payments/vendors": "Vendor Payments",
+  "/dashboard/payments/receipts": "Payment Receipt",
+  "/dashboard/payments/pending": "Pending Payments",
   "/dashboard/settings": "Settings",
 };
 

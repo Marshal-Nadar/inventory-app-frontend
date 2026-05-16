@@ -15,6 +15,12 @@ import {
   ArrowLeftRight,
   ClipboardList,
   BarChart,
+  GitMerge,
+  Wallet,
+  CreditCard,
+  Receipt,
+  Clock,
+  Tags,
   type LucideIcon,
 } from "lucide-react";
 
@@ -66,6 +72,37 @@ export const navItems: NavItem[] = [
     path: "/dashboard/roles",
     icon: ShieldCheck,
     roles: ["admin", "super_admin"],
+  },
+  {
+    label: "Misc Expense",
+    path: "/dashboard/misc-expense",
+    icon: Receipt,
+    roles: [
+      "admin",
+      "manager",
+      "cashier",
+      "kitchen",
+      "supervisor",
+      "storekeeper",
+      "super_admin",
+    ],
+    children: [
+      {
+        label: "Add Expense",
+        path: "/dashboard/misc-expense/add",
+        icon: Plus,
+      },
+      {
+        label: "Expense List",
+        path: "/dashboard/misc-expense/list",
+        icon: List,
+      },
+      {
+        label: "Manage Types",
+        path: "/dashboard/misc-expense/types",
+        icon: Tags,
+      },
+    ],
   },
   {
     label: "Raw Materials",
@@ -147,6 +184,34 @@ export const navItems: NavItem[] = [
         label: "All Requests",
         path: "/dashboard/transfers",
         icon: ClipboardList,
+      },
+      {
+        label: "Branch Stock View",
+        path: "/dashboard/transfers/branch-stock",
+        icon: GitMerge,
+      },
+    ],
+  },
+  {
+    label: "Payments",
+    path: "/dashboard/payments",
+    icon: Wallet,
+    roles: ["admin", "manager", "storekeeper", "super_admin"],
+    children: [
+      {
+        label: "Vendor Payments",
+        path: "/dashboard/payments/vendors",
+        icon: CreditCard,
+      },
+      {
+        label: "Payment Receipt",
+        path: "/dashboard/payments/receipts",
+        icon: Receipt,
+      },
+      {
+        label: "Pending Payments",
+        path: "/dashboard/payments/pending",
+        icon: Clock,
       },
     ],
   },
