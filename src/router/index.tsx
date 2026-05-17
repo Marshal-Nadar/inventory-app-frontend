@@ -26,6 +26,12 @@ import { PendingPaymentsPage } from "@/pages/dashboard/payments/PendingPaymentsP
 import { ManageExpenseTypesPage } from "@/pages/dashboard/miscExpense/ManageExpenseTypesPage";
 import { AddMiscExpensePage } from "@/pages/dashboard/miscExpense/AddMiscExpensePage";
 import { ExpenseListPage } from "@/pages/dashboard/miscExpense/ExpenseListPage";
+import { ExpenseReportPage } from "@/pages/dashboard/miscExpense/ExpenseReportPage";
+import { ProductsPage } from "@/pages/dashboard/prebooking/ProductsPage";
+import { CreatePreBookingPage } from "@/pages/dashboard/prebooking/CreatePreBookingPage";
+import { PreBookingDetailPage } from "@/pages/dashboard/prebooking/PreBookingDetailPage";
+import { PreBookingOrdersPage } from "@/pages/dashboard/prebooking/PreBookingOrdersPage";
+import { ProductReportPage } from "@/pages/dashboard/prebooking/ProductReportPage";
 
 export const router = createBrowserRouter([
   {
@@ -63,6 +69,11 @@ export const router = createBrowserRouter([
       { path: "payments/vendors", element: <VendorPaymentsPage /> },
       { path: "payments/receipts", element: <PaymentReceiptPage /> },
       { path: "payments/pending", element: <PendingPaymentsPage /> },
+      { path: "prebooking/products", element: <ProductsPage /> },
+      { path: "prebooking/new", element: <CreatePreBookingPage /> },
+      { path: "prebooking/orders", element: <PreBookingOrdersPage /> },
+      { path: "prebooking/orders/:id", element: <PreBookingDetailPage /> },
+      { path: "prebooking/report", element: <ProductReportPage /> },
       { path: "settings", element: <SettingsPage /> },
     ],
   },

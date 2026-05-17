@@ -27,6 +27,11 @@ const pageTitles: Record<string, string> = {
   "/dashboard/payments/vendors": "Vendor Payments",
   "/dashboard/payments/receipts": "Payment Receipt",
   "/dashboard/payments/pending": "Pending Payments",
+  "/dashboard/misc-expense/report": "Expense Report",
+  "/dashboard/prebooking/products": "Pre-Booking Products",
+  "/dashboard/prebooking/new": "Create Pre-Booking",
+  "/dashboard/prebooking/orders": "All Pre-Booking Orders",
+  "/dashboard/prebooking/report": "Product-Wise Pre-Booking Report",
   "/dashboard/settings": "Settings",
 };
 

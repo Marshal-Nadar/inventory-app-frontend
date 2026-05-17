@@ -32,6 +32,8 @@ import {
   Trash2,
   MoreHorizontal,
   Receipt,
+  Eye,
+  Pencil,
 } from "lucide-react";
 import {
   miscExpenseService,
@@ -41,6 +43,9 @@ import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { toast } from "sonner";
 import { format } from "date-fns";
+
+import { MiscExpenseViewDialog } from "./MiscExpenseViewDialog";
+import { MiscExpenseEditDialog } from "./MiscExpenseEditDialog";
 
 const columnHelper = createColumnHelper<MiscExpense>();
 
@@ -63,17 +68,31 @@ export const ExpenseListPage = () => {
   );
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  const [viewOpen, setViewOpen] = useState(false);
+  const [viewingExpense, setViewingExpense] = useState<MiscExpense | null>(
+    null,
+  );
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<MiscExpense | null>(
+    null,
+  );
+
   const fetchExpenses = async () => {
     try {
       setLoading(true);
       const data = await miscExpenseService.getAll();
+      // everyone sees only today — filter by expense_date
+      const todayExpenses = data.filter((e) => {
+        if (!e.expense_date) return false;
 
-      // non-admin: filter to today only
-      if (!isAdmin) {
-        setExpenses(data.filter((e) => e.expense_date.startsWith(today)));
-      } else {
-        setExpenses(data);
-      }
+        const expDate = format(new Date(e.expense_date), "yyyy-MM-dd");
+
+        console.log("converted:", expDate);
+
+        return expDate === today;
+      });
+      setExpenses(todayExpenses);
     } catch {
       toast.error("Failed to load expenses");
     } finally {
@@ -116,24 +135,6 @@ export const ExpenseListPage = () => {
     );
   }, [expenses, search]);
 
-  // ─── Group by date for admin ──────────────────────────────────
-
-  const groupedByDate = useMemo(() => {
-    if (!isAdmin) return null;
-    const map = new Map<string, MiscExpense[]>();
-    filtered.forEach((e) => {
-      const dateKey = e.expense_date.split("T")[0];
-      if (!map.has(dateKey)) map.set(dateKey, []);
-      map.get(dateKey)!.push(e);
-    });
-    // sort dates descending
-    return new Map(
-      [...map.entries()].sort(
-        (a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime(),
-      ),
-    );
-  }, [filtered, isAdmin]);
-
   // ─── Columns ──────────────────────────────────────────────────
 
   const columns = useMemo(
@@ -147,6 +148,23 @@ export const ExpenseListPage = () => {
       }),
       ...(isAdmin
         ? [
+            columnHelper.accessor("expense_date", {
+              header: ({ column }) => (
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  onClick={() => column.toggleSorting()}
+                  className='gap-1 px-0 font-medium'
+                >
+                  Date <ArrowUpDown className='w-3.5 h-3.5' />
+                </Button>
+              ),
+              cell: (info) => (
+                <span className='text-sm text-muted-foreground'>
+                  {format(new Date(info.getValue()), "dd MMM yyyy")}
+                </span>
+              ),
+            }),
             columnHelper.accessor("branch_name" as any, {
               header: ({ column }: any) => (
                 <Button
@@ -240,41 +258,63 @@ export const ExpenseListPage = () => {
           </span>
         ),
       }),
-      ...(isAdmin
-        ? [
-            columnHelper.display({
-              id: "actions",
-              header: "Actions",
-              cell: ({ row }: any) => (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant='ghost' size='icon' className='w-8 h-8'>
-                      <MoreHorizontal className='w-4 h-4' />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align='end'>
-                    <DropdownMenuItem
-                      className='text-destructive focus:text-destructive'
-                      onClick={() => {
-                        setDeletingExpense(row.original);
-                        setDeleteOpen(true);
-                      }}
-                    >
-                      <Trash2 className='mr-2 w-4 h-4' />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ),
-            }),
-          ]
-        : []),
+
+      columnHelper.display({
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant='ghost' size='icon' className='w-8 h-8'>
+                <MoreHorizontal className='w-4 h-4' />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='end'>
+              {/* View — everyone */}
+              <DropdownMenuItem
+                onClick={() => {
+                  setViewingExpense(row.original);
+                  setViewOpen(true);
+                }}
+              >
+                <Eye className='mr-2 w-4 h-4' />
+                View
+              </DropdownMenuItem>
+
+              {/* Edit + Delete — admin only */}
+              {isAdmin && (
+                <>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setEditingExpense(row.original);
+                      setEditOpen(true);
+                    }}
+                  >
+                    <Pencil className='mr-2 w-4 h-4' />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className='text-destructive focus:text-destructive'
+                    onClick={() => {
+                      setDeletingExpense(row.original);
+                      setDeleteOpen(true);
+                    }}
+                  >
+                    <Trash2 className='mr-2 w-4 h-4' />
+                    Delete
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ),
+      }),
     ],
     [isAdmin],
   );
 
   const table = useReactTable({
-    data: isAdmin ? [] : filtered, // admin uses grouped rendering
+    data: filtered, // same for everyone now
     columns,
     state: { sorting },
     onSortingChange: setSorting,
@@ -316,7 +356,7 @@ export const ExpenseListPage = () => {
         </h2>
         <p className='text-sm text-muted-foreground mt-1'>
           {isAdmin
-            ? "View all branch expenses grouped by date."
+            ? "Showing today's expenses from all branches."
             : `Showing expenses for ${format(new Date(), "dd MMM yyyy")}.`}
         </p>
       </div>
@@ -373,173 +413,11 @@ export const ExpenseListPage = () => {
       ) : filtered.length === 0 ? (
         <div className='text-center py-16 text-muted-foreground'>
           <Receipt className='w-10 h-10 opacity-30 mx-auto mb-3' />
-          <p className='text-sm'>
-            {isAdmin ? "No expenses found." : "No expenses recorded today."}
-          </p>
-        </div>
-      ) : isAdmin ? (
-        // ─── Admin: grouped by date ──────────────────────────────
-        <div className='space-y-6'>
-          {Array.from(groupedByDate!.entries()).map(
-            ([dateKey, dayExpenses]) => {
-              const dayTotal = dayExpenses.reduce(
-                (sum, e) => sum + Number(e.amount),
-                0,
-              );
-              const dayCash = dayExpenses
-                .filter((e) => e.payment_method === "cash")
-                .reduce((sum, e) => sum + Number(e.amount), 0);
-              const dayUpi = dayExpenses
-                .filter((e) => e.payment_method === "upi")
-                .reduce((sum, e) => sum + Number(e.amount), 0);
-
-              const isToday = dateKey === today;
-
-              return (
-                <div key={dateKey} className='space-y-2'>
-                  {/* Date header */}
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center gap-3'>
-                      <h3 className='text-sm font-semibold text-foreground'>
-                        {isToday
-                          ? "Today"
-                          : format(new Date(dateKey), "dd MMM yyyy")}
-                      </h3>
-                      {isToday && (
-                        <Badge className='text-xs bg-green-500/10 text-green-600 border-green-200 border'>
-                          Today
-                        </Badge>
-                      )}
-                      <span className='text-xs text-muted-foreground'>
-                        {dayExpenses.length} expense
-                        {dayExpenses.length !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-                    <div className='flex items-center gap-4 text-sm'>
-                      <span className='text-orange-600'>
-                        Cash: ₹{dayCash.toFixed(2)}
-                      </span>
-                      <span className='text-blue-600'>
-                        UPI: ₹{dayUpi.toFixed(2)}
-                      </span>
-                      <span className='font-semibold text-foreground'>
-                        Total: ₹{dayTotal.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <Card>
-                    <CardContent className='p-0'>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className='w-12'>S.No</TableHead>
-                            <TableHead>Branch</TableHead>
-                            <TableHead>Expense Type</TableHead>
-                            <TableHead>Subcategory</TableHead>
-                            <TableHead>Amount</TableHead>
-                            <TableHead>Payment</TableHead>
-                            <TableHead>Added By</TableHead>
-                            <TableHead>Notes</TableHead>
-                            <TableHead>Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {dayExpenses.map((expense, index) => (
-                            <TableRow
-                              key={expense.id}
-                              className='hover:bg-muted/50'
-                            >
-                              <TableCell className='text-sm text-muted-foreground'>
-                                {index + 1}
-                              </TableCell>
-                              <TableCell className='font-medium text-foreground'>
-                                {expense.branch_name}
-                              </TableCell>
-                              <TableCell className='font-medium text-foreground'>
-                                {expense.expense_type_name}
-                              </TableCell>
-                              <TableCell>
-                                {expense.subcategory_name ? (
-                                  <Badge variant='outline' className='text-xs'>
-                                    {expense.subcategory_name}
-                                  </Badge>
-                                ) : (
-                                  <span className='text-muted-foreground text-xs'>
-                                    —
-                                  </span>
-                                )}
-                              </TableCell>
-                              <TableCell className='font-semibold text-foreground'>
-                                ₹{Number(expense.amount).toFixed(2)}
-                              </TableCell>
-                              <TableCell>
-                                <Badge
-                                  variant='outline'
-                                  className={
-                                    expense.payment_method === "cash"
-                                      ? "text-orange-600 border-orange-200 text-xs"
-                                      : "text-blue-600 border-blue-200 text-xs"
-                                  }
-                                >
-                                  {expense.payment_method === "cash"
-                                    ? "Cash"
-                                    : "UPI"}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className='text-sm text-muted-foreground'>
-                                {expense.created_by_name || "—"}
-                              </TableCell>
-                              <TableCell className='text-sm text-muted-foreground'>
-                                {expense.notes || "—"}
-                              </TableCell>
-                              <TableCell>
-                                <Button
-                                  variant='ghost'
-                                  size='icon'
-                                  className='w-8 h-8 text-destructive hover:text-destructive'
-                                  onClick={() => {
-                                    setDeletingExpense(expense);
-                                    setDeleteOpen(true);
-                                  }}
-                                >
-                                  <Trash2 className='w-4 h-4' />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </CardContent>
-                  </Card>
-                </div>
-              );
-            },
-          )}
-
-          {/* Overall total */}
-          <Separator />
-          <div className='flex justify-end gap-6 pr-2'>
-            <span className='text-sm text-orange-600'>
-              Total Cash: ₹{cashTotal.toFixed(2)}
-            </span>
-            <span className='text-sm text-blue-600'>
-              Total UPI: ₹{upiTotal.toFixed(2)}
-            </span>
-            <span className='text-sm font-bold text-foreground'>
-              Grand Total: ₹{totalAmount.toFixed(2)}
-            </span>
-          </div>
+          <p className='text-sm'>No expenses recorded today.</p>
         </div>
       ) : (
-        // ─── Non-admin: simple table for today ──────────────────
         <div className='space-y-3'>
           <Card>
-            <CardHeader className='pb-2'>
-              <CardTitle className='text-sm text-muted-foreground'>
-                {format(new Date(), "dd MMM yyyy")} — {user?.branch}
-              </CardTitle>
-            </CardHeader>
             <CardContent className='p-0'>
               <Table>
                 <TableHeader>
@@ -588,6 +466,25 @@ export const ExpenseListPage = () => {
           </div>
         </div>
       )}
+
+      <MiscExpenseViewDialog
+        open={viewOpen}
+        onClose={() => {
+          setViewOpen(false);
+          setViewingExpense(null);
+        }}
+        expense={viewingExpense}
+      />
+
+      <MiscExpenseEditDialog
+        open={editOpen}
+        onClose={() => {
+          setEditOpen(false);
+          setEditingExpense(null);
+        }}
+        onSuccess={fetchExpenses} // or fetchReport for ExpenseReportPage
+        expense={editingExpense}
+      />
 
       <DeleteConfirmDialog
         open={deleteOpen}

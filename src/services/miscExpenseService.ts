@@ -19,6 +19,12 @@ export interface MiscExpense {
   created_at: string;
 }
 
+export interface MiscExpenseReportStats {
+  total: number;
+  cash: number;
+  upi: number;
+}
+
 export const miscExpenseService = {
   getAll: async (): Promise<MiscExpense[]> => {
     const res = await api.get("/misc-expenses");
@@ -39,7 +45,39 @@ export const miscExpenseService = {
     return res.data.data;
   },
 
+  update: async (
+    id: number,
+    payload: {
+      expense_type_id: number;
+      subcategory_id?: number | null;
+      amount: number;
+      payment_method: string;
+      expense_date: string;
+      notes?: string;
+    },
+  ): Promise<MiscExpense> => {
+    const res = await api.put(`/misc-expenses/${id}`, payload);
+    return res.data.data;
+  },
+
   delete: async (id: number): Promise<void> => {
     await api.delete(`/misc-expenses/${id}`);
+  },
+
+  getReport: async (filters: {
+    date_from: string;
+    date_to: string;
+    branch_id?: string;
+    payment_method?: string;
+  }): Promise<{ expenses: MiscExpense[]; stats: MiscExpenseReportStats }> => {
+    const params = new URLSearchParams({
+      date_from: filters.date_from,
+      date_to: filters.date_to,
+    });
+    if (filters.branch_id) params.append("branch_id", filters.branch_id);
+    if (filters.payment_method)
+      params.append("payment_method", filters.payment_method);
+    const res = await api.get(`/misc-expenses/report?${params}`);
+    return res.data.data;
   },
 };

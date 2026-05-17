@@ -21,6 +21,9 @@ import {
   Receipt,
   Clock,
   Tags,
+  CalendarCheck,
+  ShoppingBag,
+  PlusCircle,
   type LucideIcon,
 } from "lucide-react";
 
@@ -28,6 +31,7 @@ export interface NavChild {
   label: string;
   path: string;
   icon: LucideIcon;
+  roles?: string[]; // if undefined = visible to all
 }
 
 export interface NavItem {
@@ -60,6 +64,37 @@ export const navItems: NavItem[] = [
     icon: GitBranch,
     roles: ["admin", "manager"],
     hideForSuperAdmin: true,
+  },
+
+  {
+    label: "Pre-Booking",
+    path: "/dashboard/prebooking",
+    icon: CalendarCheck,
+    roles: ["admin", "storekeeper", "manager", "super_admin"],
+    children: [
+      {
+        label: "New Order",
+        path: "/dashboard/prebooking/new",
+        icon: PlusCircle,
+      },
+      {
+        label: "All Orders",
+        path: "/dashboard/prebooking/orders",
+        icon: List,
+      },
+      {
+        label: "Products",
+        path: "/dashboard/prebooking/products",
+        icon: Package,
+        roles: ["admin", "storekeeper", "super_admin"],
+      },
+      {
+        label: "Product Report",
+        path: "/dashboard/prebooking/report",
+        icon: BarChart2,
+        roles: ["admin", "storekeeper", "super_admin"],
+      },
+    ],
   },
   {
     label: "Users",
@@ -98,9 +133,16 @@ export const navItems: NavItem[] = [
         icon: List,
       },
       {
+        label: "Expense Report",
+        path: "/dashboard/misc-expense/report",
+        icon: BarChart2,
+        roles: ["admin", "storekeeper", "super_admin"],
+      },
+      {
         label: "Manage Types",
         path: "/dashboard/misc-expense/types",
         icon: Tags,
+        roles: ["admin", "storekeeper", "super_admin"],
       },
     ],
   },
@@ -114,6 +156,7 @@ export const navItems: NavItem[] = [
         label: "Add Raw Materials",
         path: "/dashboard/raw-materials/add",
         icon: Plus,
+        roles: ["admin", "storekeeper", "super_admin"],
       },
       {
         label: "All Raw Materials",

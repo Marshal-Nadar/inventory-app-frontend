@@ -165,12 +165,20 @@ export const Sidebar = () => {
                 >
                   {item
                     .children!.filter((child) => {
-                      // hide New Request only for storekeeper, not admin
                       if (
                         child.path === "/dashboard/transfers/new" &&
                         user?.role === "storekeeper"
                       )
                         return false;
+
+                      // if roles defined, check against user role
+                      if (child.roles) {
+                        return (
+                          user?.is_super_admin ||
+                          child.roles.includes(user?.role || "")
+                        );
+                      }
+
                       return true;
                     })
                     .map((child) => {

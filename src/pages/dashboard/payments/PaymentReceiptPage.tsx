@@ -245,12 +245,6 @@ export const PaymentReceiptPage = () => {
             {/* From date */}
             <div className='space-y-2'>
               <Label>From Date</Label>
-              {/* <input
-                type='date'
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className='flex h-9 w-40 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
-              /> */}
               <DatePicker
                 date={dateFrom}
                 setDate={setDateFrom}
@@ -261,12 +255,6 @@ export const PaymentReceiptPage = () => {
             {/* To date */}
             <div className='space-y-2'>
               <Label>To Date</Label>
-              {/* <input
-                type='date'
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className='flex h-9 w-40 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
-              />{" "} */}
               <DatePicker
                 date={dateTo}
                 setDate={setDateTo}
