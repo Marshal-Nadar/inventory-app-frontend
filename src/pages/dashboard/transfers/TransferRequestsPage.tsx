@@ -289,9 +289,11 @@ export const TransferRequestsPage = () => {
   const filtered = useMemo(() => {
     return requests.filter((r) => {
       const matchSearch =
-        r.raw_material_name?.toLowerCase().includes(search?.toLowerCase()) ||
-        r.branch_name?.toLowerCase().includes(search?.toLowerCase()) ||
-        r.requested_by_name?.toLowerCase().includes(search.toLowerCase());
+        r.branch_name?.toLowerCase().includes(search.toLowerCase()) ||
+        r.requested_by_name?.toLowerCase().includes(search.toLowerCase()) ||
+        r.items?.some((item) =>
+          item.raw_material_name?.toLowerCase().includes(search.toLowerCase()),
+        );
 
       const matchStatus =
         statusFilter === "all" ? true : r.status === statusFilter;
