@@ -24,6 +24,9 @@ import {
   CalendarCheck,
   ShoppingBag,
   PlusCircle,
+  TrendingUp,
+  FileText,
+  PlusSquare,
   type LucideIcon,
 } from "lucide-react";
 
@@ -64,6 +67,26 @@ export const navItems: NavItem[] = [
     icon: GitBranch,
     roles: ["admin", "manager"],
     hideForSuperAdmin: true,
+  },
+
+  {
+    label: "Daily Sales",
+    path: "/dashboard/sales",
+    icon: TrendingUp,
+    roles: ["admin", "manager", "cashier", "storekeeper", "super_admin"],
+    children: [
+      {
+        label: "Add Sales",
+        path: "/dashboard/sales/add",
+        icon: PlusSquare,
+      },
+      {
+        label: "Sales Report",
+        path: "/dashboard/sales/report",
+        icon: FileText,
+        // roles: ["admin", "storekeeper", "super_admin"],
+      },
+    ],
   },
 
   {
@@ -258,6 +281,7 @@ export const navItems: NavItem[] = [
       },
     ],
   },
+
   {
     label: "Settings",
     path: "/dashboard/settings",

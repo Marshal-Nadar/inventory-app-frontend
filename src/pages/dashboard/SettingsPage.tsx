@@ -187,7 +187,13 @@ export const SettingsPage = () => {
         <CardContent>
           <Section title='Preset'>
             {(
-              ["lake-view", "default", "sunset", "forest"] as ThemePreset[]
+              [
+                "lake-view",
+                "default",
+                "sunset",
+                "forest",
+                "ocean-breeze",
+              ] as ThemePreset[]
             ).map((p) => (
               <OptionButton
                 key={p}

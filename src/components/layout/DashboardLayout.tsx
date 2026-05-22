@@ -38,6 +38,8 @@ const pageTitles: Record<string, string> = {
   "/dashboard/prebooking/orders": "All Pre-Booking Orders",
   "/dashboard/prebooking/products": "Pre-Booking Products",
   "/dashboard/prebooking/report": "Product-Wise Pre-Booking Report",
+  "/dashboard/sales/add": "Daily Sales Entry",
+  "/dashboard/sales/report": "Sales Report",
   "/dashboard/settings": "Settings",
 };
 
@@ -74,7 +76,7 @@ export const DashboardLayout = () => {
         </header>
 
         {/* Page content */}
-        <div className='flex flex-1 flex-col p-6 overflow-auto'>
+        <div className='flex flex-1 flex-col p-6 overflow-auto overflow-x-hidden'>
           <Outlet />
         </div>
       </SidebarInset>
