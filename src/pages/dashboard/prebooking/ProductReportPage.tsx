@@ -36,6 +36,12 @@ import {
   preBookingService,
   type PreBooking,
 } from "@/services/preBookingService";
+import { Printer } from "lucide-react";
+import { PrintTableLayout } from "@/components/print/PrintTableLayout";
+import { usePrintSettings } from "@/hooks/usePrintSettings";
+import { triggerPrint } from "@/hooks/usePrint";
+import { type PrintSettings } from "@/services/printSettingsService";
+import { productReportPrintColumns } from "@/config/printColumns";
 
 const columnHelper = createColumnHelper<ProductReportRow>();
 
@@ -75,6 +81,18 @@ export const ProductReportPage = () => {
   const [viewOpen, setViewOpen] = useState(false);
   const [viewingOrder, setViewingOrder] = useState<PreBooking | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
+
+  const { getPrintSettings } = usePrintSettings();
+  const [printSettings, setPrintSettings] = useState<PrintSettings | null>(
+    null,
+  );
+
+  const handlePrint = () => {
+    const settings = getPrintSettings();
+    if (!settings) return;
+    setPrintSettings(settings);
+    setTimeout(() => triggerPrint(), 150);
+  };
 
   const handleView = async (bookingId: number) => {
     setViewLoading(true);
@@ -299,6 +317,12 @@ export const ProductReportPage = () => {
           View pre-booking orders filtered by product and date range.
         </p>
       </div>
+      {rows.length > 0 && (
+        <Button variant='outline' onClick={handlePrint} className='gap-2'>
+          <Printer className='w-4 h-4' />
+          Print
+        </Button>
+      )}
 
       {/* Filter card */}
       <Card>
@@ -499,6 +523,38 @@ export const ProductReportPage = () => {
           setViewingOrder(null);
         }}
         order={viewingOrder}
+      />
+
+      <PrintTableLayout
+        settings={
+          printSettings || {
+            id: 0,
+            name: "Restaurant",
+            print_company_name: "",
+            print_address: null,
+            print_contact: null,
+            print_footer_note: null,
+          }
+        }
+        title='Product-Wise Pre-Booking Report'
+        columns={productReportPrintColumns}
+        data={rows}
+        summary={
+          stats
+            ? [
+                { label: "Total Orders:", value: String(stats.total_orders) },
+                { label: "Total Qty:", value: String(stats.total_qty) },
+                {
+                  label: "Item Value:",
+                  value: `₹${stats.total_item_value.toFixed(2)}`,
+                },
+                {
+                  label: "Total Paid:",
+                  value: `₹${stats.total_paid.toFixed(2)}`,
+                },
+              ]
+            : []
+        }
       />
     </div>
   );

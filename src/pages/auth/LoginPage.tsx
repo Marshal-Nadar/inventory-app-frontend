@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
-import { useAppSelector } from "@/hooks/useAppSelector";
 import { setCredentials } from "@/store/slices/authSlice";
-import { setColorMode } from "@/store/slices/themeSlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +15,8 @@ import {
 } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import axios from "axios";
+import { setPrintSettings } from "@/store/slices/authSlice";
+import { printSettingsService } from "@/services/printSettingsService";
 
 export const LoginPage = () => {
   const dispatch = useAppDispatch();
@@ -38,6 +38,18 @@ export const LoginPage = () => {
       );
       const { token, user } = response.data.data;
       dispatch(setCredentials({ token, user }));
+
+      // fetch print settings and store in Redux
+      if (user.restaurant_id) {
+        try {
+          const settings = await printSettingsService.get(user.restaurant_id);
+          dispatch(setPrintSettings(settings));
+        } catch {
+          // non-critical — don't block login
+          console.warn("Could not load print settings");
+        }
+      }
+
       toast.success(`Welcome back, ${user.name.split(" ")[0]}!`);
       navigate("/dashboard");
     } catch (err: any) {

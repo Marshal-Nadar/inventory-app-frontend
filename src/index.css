@@ -415,3 +415,38 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+/* ─── Print Styles ───────────────────────────────── */
+/* ─── Print ──────────────────────────────────────── */
+
+/* hide print area on screen */
+#print-area {
+  display: none;
+}
+
+@media print {
+  /* hide browser default header/footer */
+  @page {
+    margin: 15mm;
+  }
+
+  /* hide everything */
+  body * {
+    visibility: hidden;
+  }
+
+  /* show only print area and its children */
+  #print-area,
+  #print-area * {
+    visibility: visible;
+  }
+
+  /* position print area at top */
+  #print-area {
+    display: block !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+}

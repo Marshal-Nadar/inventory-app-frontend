@@ -1,4 +1,5 @@
 import api from "@/lib/axios";
+import { PaginatedResponse } from "./purchaseService";
 
 export interface PreBookingItem {
   id: number;
@@ -104,9 +105,17 @@ export interface ProductReportStats {
 }
 
 export const preBookingService = {
-  getAll: async (): Promise<PreBooking[]> => {
-    const res = await api.get("/pre-bookings");
-    return res.data.data;
+  getAll: async (filters?: {
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResponse<PreBooking>> => {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append("status", filters.status);
+    params.append("page", String(filters?.page || 1));
+    params.append("limit", String(filters?.limit || 20));
+    const res = await api.get(`/pre-bookings?${params}`);
+    return { data: res.data.data, pagination: res.data.pagination };
   },
 
   getById: async (id: number): Promise<PreBooking> => {

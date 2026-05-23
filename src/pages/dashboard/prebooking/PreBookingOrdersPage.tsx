@@ -45,8 +45,6 @@ import {
   Search,
   MoreHorizontal,
   Eye,
-  CreditCard,
-  RefreshCw,
   ArrowUpDown,
   CalendarCheck,
   Trash2,
@@ -61,15 +59,15 @@ import { useAppSelector } from "@/hooks/useAppSelector";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { PreBookingViewDialog } from "./PreBookingViewDialog";
+import { TablePagination } from "@/components/common/TablePagination";
+import { Printer } from "lucide-react";
+import { PrintTableLayout } from "@/components/print/PrintTableLayout";
+import { usePrintSettings } from "@/hooks/usePrintSettings";
+import { triggerPrint } from "@/hooks/usePrint";
+import { type PrintSettings } from "@/services/printSettingsService";
+import { preBookingPrintColumns } from "@/config/printColumns";
 
 const columnHelper = createColumnHelper<PreBooking>();
-
-const ORDER_STATUSES = [
-  { value: "pending", label: "Pending" },
-  { value: "confirmed", label: "Confirmed" },
-  { value: "delivered", label: "Delivered" },
-  { value: "cancelled", label: "Cancelled" },
-];
 
 const PAYMENT_METHODS = [
   { value: "cash", label: "Cash" },
@@ -131,12 +129,6 @@ export const PreBookingOrdersPage = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  // update status dialog
-  const [statusOpen, setStatusOpen] = useState(false);
-  const [statusOrder, setStatusOrder] = useState<PreBooking | null>(null);
-  const [newStatus, setNewStatus] = useState("");
-  const [statusLoading, setStatusLoading] = useState(false);
-
   // update payment dialog
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [paymentOrder, setPaymentOrder] = useState<PreBooking | null>(null);
@@ -155,15 +147,83 @@ export const PreBookingOrdersPage = () => {
   const [viewingOrder, setViewingOrder] = useState<PreBooking | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
 
-  const fetchOrders = async () => {
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const [allStats, setAllStats] = useState({
+    total: 0,
+    pending: 0,
+    confirmed: 0,
+    delivered: 0,
+    unpaid: 0,
+    partial: 0,
+  });
+
+  const { getPrintSettings } = usePrintSettings();
+  const [printSettings, setPrintSettings] = useState<PrintSettings | null>(
+    null,
+  );
+
+  const handlePrint = () => {
+    const settings = getPrintSettings();
+    if (!settings) return;
+    setPrintSettings(settings);
+    // small delay to let React render the PrintTableLayout
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  };
+
+  const fetchOrders = async (overrides?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    forceStatus?: string | null; // null = explicitly "all"
+  }) => {
     try {
       setLoading(true);
-      const data = await preBookingService.getAll();
-      setOrders(data);
+
+      let statusToSend: string | undefined;
+      if (overrides?.forceStatus === null) {
+        statusToSend = undefined; // "all" — no filter
+      } else if (overrides?.forceStatus !== undefined) {
+        statusToSend = overrides.forceStatus;
+      } else {
+        statusToSend = statusFilter !== "all" ? statusFilter : undefined;
+      }
+
+      const result = await preBookingService.getAll({
+        status: statusToSend,
+        page: overrides?.page ?? page,
+        limit: overrides?.limit ?? limit,
+      });
+      setOrders(result.data);
+      setTotal(result.pagination.total);
+      setTotalPages(result.pagination.totalPages);
     } catch {
       toast.error("Failed to load orders");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      // fetch all without status filter to get true counts
+      const result = await preBookingService.getAll({ page: 1, limit: 1000 });
+      const data = result.data;
+      setAllStats({
+        total: result.pagination.total,
+        pending: data.filter((o) => o.order_status === "pending").length,
+        confirmed: data.filter((o) => o.order_status === "confirmed").length,
+        delivered: data.filter((o) => o.order_status === "delivered").length,
+        unpaid: data.filter((o) => o.payment_status === "unpaid").length,
+        partial: data.filter((o) => o.payment_status === "partial").length,
+      });
+    } catch {
+      console.error("Failed to fetch stats");
     }
   };
 
@@ -182,6 +242,7 @@ export const PreBookingOrdersPage = () => {
 
   useEffect(() => {
     fetchOrders();
+    fetchStats();
   }, []);
 
   // ─── Handlers ─────────────────────────────────────────────────
@@ -238,22 +299,29 @@ export const PreBookingOrdersPage = () => {
     }
   };
 
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchOrders({ page: newPage });
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1);
+    fetchOrders({ page: 1, limit: newLimit });
+  };
+
   // ─── Filter ───────────────────────────────────────────────────
 
   const filtered = useMemo(() => {
-    return orders.filter((o) => {
-      const matchSearch =
+    if (!search) return orders;
+    return orders.filter(
+      (o) =>
         o.order_id.toLowerCase().includes(search.toLowerCase()) ||
         o.customer_name.toLowerCase().includes(search.toLowerCase()) ||
         o.mobile.includes(search) ||
-        o.branch_name?.toLowerCase().includes(search.toLowerCase());
-
-      const matchStatus =
-        statusFilter === "all" ? true : o.order_status === statusFilter;
-
-      return matchSearch && matchStatus;
-    });
-  }, [orders, search, statusFilter]);
+        o.branch_name?.toLowerCase().includes(search.toLowerCase()),
+    );
+  }, [orders, search]);
 
   // ─── Stats ────────────────────────────────────────────────────
 
@@ -444,7 +512,7 @@ export const PreBookingOrdersPage = () => {
   );
 
   const table = useReactTable({
-    data: filtered,
+    data: filtered, // ← was orders, change to filtered
     columns,
     state: { sorting },
     onSortingChange: setSorting,
@@ -466,13 +534,24 @@ export const PreBookingOrdersPage = () => {
             Manage all pre-booking orders.
           </p>
         </div>
-        <Button
-          onClick={() => navigate("/dashboard/prebooking/new")}
-          className='gap-2'
-        >
-          <Plus className='w-4 h-4' />
-          New Order
-        </Button>
+        <div className='flex items-center gap-2'>
+          <Button
+            variant='outline'
+            onClick={handlePrint}
+            disabled={orders.length === 0}
+            className='gap-2'
+          >
+            <Printer className='w-4 h-4' />
+            Print
+          </Button>
+          <Button
+            onClick={() => navigate("/dashboard/prebooking/new")}
+            className='gap-2'
+          >
+            <Plus className='w-4 h-4' />
+            New Order
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -480,14 +559,16 @@ export const PreBookingOrdersPage = () => {
         <Card>
           <CardContent className='pt-3 space-y-1'>
             <p className='text-xs text-muted-foreground'>Total Orders</p>
-            <p className='text-2xl font-bold text-foreground'>{stats.total}</p>
+            <p className='text-2xl font-bold text-foreground'>
+              {allStats.total}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className='pt-3 space-y-1'>
             <p className='text-xs text-muted-foreground'>Pending</p>
             <p className='text-2xl font-bold text-yellow-600'>
-              {stats.pending}
+              {allStats.pending}
             </p>
           </CardContent>
         </Card>
@@ -495,7 +576,7 @@ export const PreBookingOrdersPage = () => {
           <CardContent className='pt-3 space-y-1'>
             <p className='text-xs text-muted-foreground'>Unpaid</p>
             <p className='text-2xl font-bold text-destructive'>
-              {stats.unpaid}
+              {allStats.unpaid}
             </p>
           </CardContent>
         </Card>
@@ -503,7 +584,7 @@ export const PreBookingOrdersPage = () => {
           <CardContent className='pt-3 space-y-1'>
             <p className='text-xs text-muted-foreground'>Partial</p>
             <p className='text-2xl font-bold text-orange-600'>
-              {stats.partial}
+              {allStats.partial}
             </p>
           </CardContent>
         </Card>
@@ -528,13 +609,20 @@ export const PreBookingOrdersPage = () => {
                 key={s}
                 size='sm'
                 variant={statusFilter === s ? "default" : "outline"}
-                onClick={() => setStatusFilter(s)}
+                onClick={() => {
+                  setStatusFilter(s);
+                  setPage(1);
+                  fetchOrders({
+                    page: 1,
+                    forceStatus: s === "all" ? null : s,
+                  });
+                }}
                 className='capitalize'
               >
                 {s}
-                {s === "pending" && stats.pending > 0 && (
+                {s === "pending" && allStats.pending > 0 && (
                   <Badge className='ml-1.5 h-4 w-4 p-0 flex items-center justify-center text-xs bg-yellow-500 text-white'>
-                    {stats.pending}
+                    {allStats.pending}
                   </Badge>
                 )}
               </Button>
@@ -608,6 +696,14 @@ export const PreBookingOrdersPage = () => {
               )}
             </TableBody>
           </Table>
+          <TablePagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            limit={limit}
+            onPageChange={handlePageChange}
+            onLimitChange={handleLimitChange}
+          />
         </CardContent>
       </Card>
 
@@ -736,6 +832,35 @@ export const PreBookingOrdersPage = () => {
         description={`Delete order "${deletingOrder?.order_id}" for ${deletingOrder?.customer_name}? This cannot be undone.`}
         loading={deleteLoading}
       />
+
+      {printSettings && (
+        <PrintTableLayout
+          settings={
+            printSettings || {
+              id: 0,
+              name: "Restaurant",
+              print_company_name: "",
+              print_address: null,
+              print_contact: null,
+              print_footer_note: null,
+            }
+          }
+          title='Pre-Booking Orders'
+          columns={preBookingPrintColumns}
+          data={orders}
+          summary={[
+            { label: "Total Orders:", value: String(total) },
+            {
+              label: "Total Amount:",
+              value: `₹${orders.reduce((s, o) => s + Number(o.final_amount), 0).toFixed(2)}`,
+            },
+            {
+              label: "Total Paid:",
+              value: `₹${orders.reduce((s, o) => s + Number(o.amount_paid), 0).toFixed(2)}`,
+            },
+          ]}
+        />
+      )}
     </div>
   );
 };

@@ -48,6 +48,12 @@ import {
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { SalesViewDialog } from "./SalesViewDialog";
+import { Printer } from "lucide-react";
+import { PrintTableLayout } from "@/components/print/PrintTableLayout";
+import { usePrintSettings } from "@/hooks/usePrintSettings";
+import { triggerPrint } from "@/hooks/usePrint";
+import { type PrintSettings } from "@/services/printSettingsService";
+import { salesReportPrintColumns } from "@/config/printColumns";
 
 const columnHelper = createColumnHelper<DailySales>();
 
@@ -76,6 +82,18 @@ export const SalesReportPage = () => {
 
   const [viewOpen, setViewOpen] = useState(false);
   const [viewingRecord, setViewingRecord] = useState<DailySales | null>(null);
+
+  const { getPrintSettings } = usePrintSettings();
+  const [printSettings, setPrintSettings] = useState<PrintSettings | null>(
+    null,
+  );
+
+  const handlePrint = () => {
+    const settings = getPrintSettings();
+    if (!settings) return;
+    setPrintSettings(settings);
+    setTimeout(() => triggerPrint(), 150);
+  };
 
   const handleDelete = async () => {
     if (!deletingRecord) return;
@@ -335,6 +353,12 @@ export const SalesReportPage = () => {
           View daily sales across branches.
         </p>
       </div>
+      {sales.length > 0 && (
+        <Button variant='outline' onClick={handlePrint} className='gap-2'>
+          <Printer className='w-4 h-4' />
+          Print
+        </Button>
+      )}
 
       {/* Filters */}
       <div className='w-full overflow-x-auto'>
@@ -517,6 +541,36 @@ export const SalesReportPage = () => {
           setViewingRecord(null);
         }}
         record={viewingRecord}
+      />
+
+      <PrintTableLayout
+        settings={
+          printSettings || {
+            id: 0,
+            name: "Restaurant",
+            print_company_name: "",
+            print_address: null,
+            print_contact: null,
+            print_footer_note: null,
+          }
+        }
+        title='Daily Sales Report'
+        columns={salesReportPrintColumns}
+        data={sales}
+        summary={[
+          { label: "Total Records:", value: String(sales.length) },
+          { label: "Net Sales:", value: `₹${stats.totalNetSales.toFixed(2)}` },
+          {
+            label: "Net Counter:",
+            value: `₹${stats.totalNetCounter.toFixed(2)}`,
+          },
+          { label: "Total Cash:", value: `₹${stats.totalCash.toFixed(2)}` },
+          { label: "Total UPI:", value: `₹${stats.totalUpi.toFixed(2)}` },
+          {
+            label: "Difference:",
+            value: `${stats.totalDifference > 0 ? "+" : ""}${stats.totalDifference.toFixed(2)}`,
+          },
+        ]}
       />
 
       <DeleteConfirmDialog

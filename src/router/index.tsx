@@ -34,6 +34,7 @@ import { PreBookingOrdersPage } from "@/pages/dashboard/prebooking/PreBookingOrd
 import { ProductReportPage } from "@/pages/dashboard/prebooking/ProductReportPage";
 import { AddSalesPage } from "@/pages/sales/AddSalesPage";
 import { SalesReportPage } from "@/pages/sales/SalesReportPage";
+import { PrintSettingsPage } from "@/pages/dashboard/settings/PrintSettingsPage";
 
 export const router = createBrowserRouter([
   {
@@ -79,7 +80,8 @@ export const router = createBrowserRouter([
       { path: "prebooking/report", element: <ProductReportPage /> },
       { path: "sales/add", element: <AddSalesPage /> },
       { path: "sales/report", element: <SalesReportPage /> },
-      { path: "settings", element: <SettingsPage /> },
+      { path: "settings/appearance", element: <SettingsPage /> },
+      { path: "settings/print", element: <PrintSettingsPage /> },
     ],
   },
   {

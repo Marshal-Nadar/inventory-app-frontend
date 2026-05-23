@@ -28,6 +28,8 @@ import {
   FileText,
   PlusSquare,
   type LucideIcon,
+  Palette,
+  Printer,
 } from "lucide-react";
 
 export interface NavChild {
@@ -286,6 +288,19 @@ export const navItems: NavItem[] = [
     label: "Settings",
     path: "/dashboard/settings",
     icon: Settings,
-    roles: ["admin", "manager", "super_admin"],
+    roles: ["admin", "super_admin"],
+    children: [
+      {
+        label: "Appearance",
+        path: "/dashboard/settings/appearance",
+        icon: Palette,
+      },
+      {
+        label: "Print Settings",
+        path: "/dashboard/settings/print",
+        icon: Printer,
+        roles: ["admin", "super_admin"],
+      },
+    ],
   },
 ];

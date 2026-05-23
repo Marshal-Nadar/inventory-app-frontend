@@ -51,6 +51,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Printer } from "lucide-react";
+import { PrintTableLayout } from "@/components/print/PrintTableLayout";
+import { usePrintSettings } from "@/hooks/usePrintSettings";
+import { triggerPrint } from "@/hooks/usePrint";
+import { type PrintSettings } from "@/services/printSettingsService";
+import { expenseReportPrintColumns } from "@/config/printColumns";
 
 const columnHelper = createColumnHelper<MiscExpense>();
 
@@ -88,6 +94,18 @@ export const ExpenseReportPage = () => {
   const [editingExpense, setEditingExpense] = useState<MiscExpense | null>(
     null,
   );
+
+  const { getPrintSettings } = usePrintSettings();
+  const [printSettings, setPrintSettings] = useState<PrintSettings | null>(
+    null,
+  );
+
+  const handlePrint = () => {
+    const settings = getPrintSettings();
+    if (!settings) return;
+    setPrintSettings(settings);
+    setTimeout(() => triggerPrint(), 150);
+  };
 
   useEffect(() => {
     branchService
@@ -302,11 +320,19 @@ export const ExpenseReportPage = () => {
   return (
     <div className='space-y-6'>
       {/* Header */}
-      <div>
-        <h2 className='text-xl font-bold text-foreground'>Expense Report</h2>
-        <p className='text-sm text-muted-foreground mt-1'>
-          View miscellaneous expenses across branches by date range.
-        </p>
+      <div className='flex items-center justify-between'>
+        <div>
+          <h2 className='text-xl font-bold text-foreground'>Expense Report</h2>
+          <p className='text-sm text-muted-foreground mt-1'>
+            View miscellaneous expenses across branches by date range.
+          </p>
+        </div>
+        {filtered.length > 0 && (
+          <Button variant='outline' onClick={handlePrint} className='gap-2'>
+            <Printer className='w-4 h-4' />
+            Print
+          </Button>
+        )}
       </div>
 
       {/* Filter card */}
@@ -516,6 +542,32 @@ export const ExpenseReportPage = () => {
         }}
         onSuccess={handleFilter}
         expense={editingExpense}
+      />
+
+      <PrintTableLayout
+        settings={
+          printSettings || {
+            id: 0,
+            name: "Restaurant",
+            print_company_name: "",
+            print_address: null,
+            print_contact: null,
+            print_footer_note: null,
+          }
+        }
+        title='Expense Report'
+        columns={expenseReportPrintColumns}
+        data={filtered}
+        summary={
+          stats
+            ? [
+                { label: "Total Records:", value: String(filtered.length) },
+                { label: "Cash:", value: `₹${stats.cash.toFixed(2)}` },
+                { label: "UPI:", value: `₹${stats.upi.toFixed(2)}` },
+                { label: "Total:", value: `₹${stats.total.toFixed(2)}` },
+              ]
+            : []
+        }
       />
     </div>
   );

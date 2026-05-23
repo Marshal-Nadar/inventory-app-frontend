@@ -44,6 +44,12 @@ import { type Vendor, vendorService } from "@/services/vendorService";
 import { Combobox } from "@/components/common/Combobox";
 import { PurchaseEditDialog } from "./PurchaseEditDialog";
 import { TablePagination } from "@/components/common/TablePagination";
+import { Printer } from "lucide-react";
+import { PrintTableLayout } from "@/components/print/PrintTableLayout";
+import { usePrintSettings } from "@/hooks/usePrintSettings";
+import { triggerPrint } from "@/hooks/usePrint";
+import { type PrintSettings } from "@/services/printSettingsService";
+import { purchasePrintColumns } from "@/config/printColumns";
 
 const PERMITTED_ROLES = ["admin", "manager", "supervisor"];
 const columnHelper = createColumnHelper<Purchase>();
@@ -89,6 +95,18 @@ export const PurchasesPage = () => {
   const [limit, setLimit] = useState(20);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+
+  const { getPrintSettings } = usePrintSettings();
+  const [printSettings, setPrintSettings] = useState<PrintSettings | null>(
+    null,
+  );
+
+  const handlePrint = () => {
+    const settings = getPrintSettings();
+    if (!settings) return;
+    setPrintSettings(settings);
+    setTimeout(() => triggerPrint(), 150);
+  };
 
   // ─── Fetch ──────────────────────────────────────────────────────
 
@@ -351,6 +369,14 @@ export const PurchasesPage = () => {
             Track all purchases from vendors.
           </p>
         </div>
+
+        {purchases.length > 0 && (
+          <Button variant='outline' onClick={handlePrint} className='gap-2'>
+            <Printer className='w-4 h-4' />
+            Print
+          </Button>
+        )}
+
         {canMutate && (
           <Button
             onClick={() => navigate("/dashboard/purchases/new")}
@@ -597,6 +623,29 @@ export const PurchasesPage = () => {
           });
         }}
         purchaseId={editingPurchaseId}
+      />
+
+      <PrintTableLayout
+        settings={
+          printSettings || {
+            id: 0,
+            name: "Restaurant",
+            print_company_name: "",
+            print_address: null,
+            print_contact: null,
+            print_footer_note: null,
+          }
+        }
+        title='Purchases'
+        columns={purchasePrintColumns}
+        data={purchases}
+        summary={[
+          { label: "Total Purchases:", value: String(total) },
+          {
+            label: "Total Spend:",
+            value: `₹${purchases.reduce((s, p) => s + Number(p.total_cost), 0).toFixed(2)}`,
+          },
+        ]}
       />
     </div>
   );

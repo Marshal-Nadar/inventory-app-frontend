@@ -43,7 +43,8 @@ const pageTitles: Record<string, string> = {
   "/dashboard/prebooking/report": "Product-Wise Pre-Booking Report",
   "/dashboard/sales/add": "Daily Sales Entry",
   "/dashboard/sales/report": "Sales Report",
-  "/dashboard/settings": "Settings",
+  "/dashboard/settings/print": "Print Settings",
+  "/dashboard/settings/appearance": "Appearance Settings",
 };
 
 export const DashboardLayout = () => {
