@@ -96,18 +96,38 @@ export interface VendorReport {
   materials: VendorReportMaterial[];
 }
 
-export const purchaseService = {
-  getAll: async (filters?: PurchaseFilters): Promise<PurchaseListResponse> => {
-    const params = new URLSearchParams();
-    if (filters?.vendor_id) params.append("vendor_id", filters.vendor_id);
-    if (filters?.invoice_number)
-      params.append("invoice_number", filters.invoice_number);
-    if (filters?.date_from) params.append("date_from", filters.date_from);
-    if (filters?.date_to) params.append("date_to", filters.date_to);
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
 
-    const query = params.toString();
-    const res = await api.get(`/purchases${query ? `?${query}` : ""}`);
-    return res.data.data;
+export const purchaseService = {
+  getAll: async (filters: {
+    vendor_id?: string;
+    invoice_number?: string;
+    date_from?: string;
+    date_to?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResponse<Purchase>> => {
+    const params = new URLSearchParams();
+    if (filters.vendor_id) params.append("vendor_id", filters.vendor_id);
+    if (filters.invoice_number)
+      params.append("invoice_number", filters.invoice_number);
+    if (filters.date_from) params.append("date_from", filters.date_from);
+    if (filters.date_to) params.append("date_to", filters.date_to);
+    params.append("page", String(filters.page || 1));
+    params.append("limit", String(filters.limit || 20));
+    const res = await api.get(`/purchases?${params}`);
+    return {
+      data: res.data.data,
+      pagination: res.data.pagination,
+    };
   },
 
   getById: async (id: number): Promise<Purchase> => {

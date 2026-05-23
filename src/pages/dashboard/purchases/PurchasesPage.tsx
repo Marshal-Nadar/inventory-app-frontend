@@ -43,6 +43,7 @@ import { toast } from "sonner";
 import { type Vendor, vendorService } from "@/services/vendorService";
 import { Combobox } from "@/components/common/Combobox";
 import { PurchaseEditDialog } from "./PurchaseEditDialog";
+import { TablePagination } from "@/components/common/TablePagination";
 
 const PERMITTED_ROLES = ["admin", "manager", "supervisor"];
 const columnHelper = createColumnHelper<Purchase>();
@@ -84,22 +85,52 @@ export const PurchasesPage = () => {
   );
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
   // ─── Fetch ──────────────────────────────────────────────────────
 
-  const fetchPurchases = async (filters?: {
+  const fetchPurchases = async (overrides?: {
+    page?: number;
+    limit?: number;
     vendor_id?: string;
     invoice_number?: string;
   }) => {
     try {
       setLoading(true);
-      const data = await purchaseService.getAll(filters);
-      setPurchases(data.purchases);
-      setStats(data.stats);
-    } catch (err) {
-      console.error(err);
+      const result = await purchaseService.getAll({
+        vendor_id: overrides?.vendor_id ?? (filterVendor || undefined),
+        invoice_number:
+          overrides?.invoice_number ?? (filterInvoice || undefined),
+        page: overrides?.page ?? page,
+        limit: overrides?.limit ?? limit,
+      });
+      setPurchases(result.data);
+      setTotal(result.pagination.total);
+      setTotalPages(result.pagination.totalPages);
+    } catch {
+      toast.error("Failed to load purchases");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFilter = () => {
+    setPage(1);
+    fetchPurchases({ page: 1 });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchPurchases({ page: newPage });
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1);
+    fetchPurchases({ page: 1, limit: newLimit });
   };
 
   const fetchVendorInvoices = async (vendorId: string) => {
@@ -110,15 +141,19 @@ export const PurchasesPage = () => {
       return;
     }
     try {
-      const data = await purchaseService.getAll({ vendor_id: vendorId });
-      const options = data.purchases.map((p) => ({
+      const result = await purchaseService.getAll({
+        vendor_id: vendorId,
+        page: 1,
+        limit: 100,
+      });
+      const invoices = [
+        ...new Map(result.data.map((p) => [p.invoice_number, p])).values(),
+      ].map((p) => ({
         value: p.invoice_number,
         label: p.invoice_number,
         date: p.purchase_date,
       }));
-      setInvoiceOptions(options);
-      setFilterInvoice("");
-      setSelectedInvoiceDate("");
+      setInvoiceOptions(invoices);
     } catch (err) {
       console.error(err);
     }
@@ -357,6 +392,12 @@ export const PurchasesPage = () => {
               onChange={(val) => {
                 setFilterVendor(val);
                 fetchVendorInvoices(val);
+                fetchPurchases({
+                  page: 1,
+                  vendor_id: val || undefined,
+                  invoice_number: undefined,
+                });
+                setFilterInvoice("");
               }}
               placeholder='All Vendors'
               searchPlaceholder='Search vendors...'
@@ -380,6 +421,11 @@ export const PurchasesPage = () => {
                   setFilterInvoice(val);
                   const found = invoiceOptions.find((o) => o.value === val);
                   setSelectedInvoiceDate(found?.date || "");
+                  fetchPurchases({
+                    page: 1,
+                    vendor_id: filterVendor || undefined,
+                    invoice_number: val || undefined,
+                  });
                 }}
                 placeholder='All Invoices'
                 searchPlaceholder='Search invoices...'
@@ -507,6 +553,15 @@ export const PurchasesPage = () => {
               )}
             </TableBody>
           </Table>
+
+          <TablePagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            limit={limit}
+            onPageChange={handlePageChange}
+            onLimitChange={handleLimitChange}
+          />
         </CardContent>
       </Card>
 
