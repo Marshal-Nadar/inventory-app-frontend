@@ -9,6 +9,9 @@ import { useAppSelector } from "@/hooks/useAppSelector";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Separator } from "@/components/ui/separator";
 import { Outlet } from "react-router-dom";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { setSidebarMode } from "@/store/slices/themeSlice";
+import { cn } from "@/lib/utils";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -49,11 +52,20 @@ export const DashboardLayout = () => {
 
   const pageTitle = pageTitles[location.pathname] || "Dashboard";
 
+  const dispatch = useAppDispatch();
+  const sidebarMode = useAppSelector((state) => state.theme.sidebarMode);
+  const contentLayout = useAppSelector((state) => state.theme.contentLayout);
+
+  const isOpen = sidebarMode === "default";
+
+  const handleOpenChange = (open: boolean) => {
+    dispatch(setSidebarMode(open ? "default" : "icon"));
+  };
+
   return (
-    <SidebarProvider>
+    <SidebarProvider open={isOpen} onOpenChange={handleOpenChange}>
       <AppSidebar />
       <SidebarInset>
-        {/* Top header */}
         <header className='flex h-14 shrink-0 items-center gap-2 border-b px-4'>
           <SidebarTrigger className='-ml-1' />
           <Separator orientation='vertical' className='mr-2 h-4' />
@@ -74,10 +86,16 @@ export const DashboardLayout = () => {
             </div>
           </div>
         </header>
-
         {/* Page content */}
         <div className='flex flex-1 flex-col p-6 overflow-auto overflow-x-hidden'>
-          <Outlet />
+          <div
+            className={cn(
+              "w-full",
+              contentLayout === "centered" ? "max-w-4xl mx-auto" : "",
+            )}
+          >
+            <Outlet />
+          </div>
         </div>
       </SidebarInset>
     </SidebarProvider>

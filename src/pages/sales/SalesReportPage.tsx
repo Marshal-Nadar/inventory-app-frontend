@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import { useAppSelector } from "@/hooks/useAppSelector";
+import { SalesViewDialog } from "./SalesViewDialog";
 
 const columnHelper = createColumnHelper<DailySales>();
 
@@ -72,6 +73,9 @@ export const SalesReportPage = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingRecord, setDeletingRecord] = useState<DailySales | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const [viewOpen, setViewOpen] = useState(false);
+  const [viewingRecord, setViewingRecord] = useState<DailySales | null>(null);
 
   const handleDelete = async () => {
     if (!deletingRecord) return;
@@ -128,22 +132,11 @@ export const SalesReportPage = () => {
   };
 
   const handleFilter = async () => {
-    setLoading(true);
-    try {
-      const data = await fetchData({
-        branch_id: branchId || undefined,
-        date_from: dateFrom ? format(dateFrom, "yyyy-MM-dd") : undefined,
-        date_to: dateTo ? format(dateTo, "yyyy-MM-dd") : undefined,
-      });
-
-      setSales(data);
-      setSearched(true);
-      if (data.length === 0) toast.info("No sales records found");
-    } catch {
-      toast.error("Failed to load sales report");
-    } finally {
-      setLoading(false);
-    }
+    await fetchData({
+      branch_id: branchId || undefined,
+      date_from: dateFrom ? format(dateFrom, "yyyy-MM-dd") : undefined,
+      date_to: dateTo ? format(dateTo, "yyyy-MM-dd") : undefined,
+    });
   };
 
   // ─── Stats ────────────────────────────────────────────────────
@@ -279,11 +272,10 @@ export const SalesReportPage = () => {
               <DropdownMenuContent align='end'>
                 {/* View */}
                 <DropdownMenuItem
-                  onClick={() =>
-                    navigate(
-                      `/dashboard/sales/add?branch_id=${record.branch_id}&date=${recordDate}`,
-                    )
-                  }
+                  onClick={() => {
+                    setViewingRecord(record);
+                    setViewOpen(true);
+                  }}
                 >
                   <Eye className='mr-2 w-4 h-4' />
                   View
@@ -517,6 +509,15 @@ export const SalesReportPage = () => {
           </p>
         </div>
       )}
+
+      <SalesViewDialog
+        open={viewOpen}
+        onClose={() => {
+          setViewOpen(false);
+          setViewingRecord(null);
+        }}
+        record={viewingRecord}
+      />
 
       <DeleteConfirmDialog
         open={deleteOpen}

@@ -1,7 +1,12 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export type ColorMode = "light" | "dark";
-export type ThemePreset = "lake-view" | "default" | "sunset" | "forest";
+export type ThemePreset =
+  | "lake-view"
+  | "default"
+  | "sunset"
+  | "forest"
+  | "ocean-breeze";
 export type ThemeScale = "xs" | "sm" | "md" | "lg";
 export type ThemeRadius = "sm" | "md" | "lg" | "xl";
 export type SidebarMode = "default" | "icon";
