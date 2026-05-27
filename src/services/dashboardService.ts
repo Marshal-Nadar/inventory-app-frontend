@@ -1,55 +1,36 @@
 import api from "@/lib/axios";
 
 export interface DashboardStats {
-  restaurants: {
-    total: number;
-    active: number;
+  restaurants: { total: number; active: number };
+  branches: { total: number; active: number };
+  users: { total: number; active: number };
+  roles: { total: number; custom: number };
+  operations: {
+    pending_transfers: number;
+    out_of_stock: number;
+    low_stock: number;
+    pending_prebookings: number;
+    confirmed_prebookings: number;
+    today_deliveries: number;
+    vendor_outstanding: number;
   };
-  branches: {
-    total: number;
-    active: number;
+  today_sales: {
+    branches_reported: number;
+    total_net_sales: number;
+    total_net_counter: number;
   };
-  users: {
-    total: number;
-    active: number;
-  };
-  roles: {
-    total: number;
-    custom: number;
-  };
+  recent_purchases: {
+    id: number;
+    purchase_date: string;
+    invoice_number: string;
+    total_cost: number;
+    vendor_name: string;
+  }[];
 }
 
 export const dashboardService = {
   getStats: async (): Promise<DashboardStats> => {
-    const [restaurants, branches, users, roles] = await Promise.all([
-      api.get("/restaurants"),
-      api.get("/branches"),
-      api.get("/users"),
-      api.get("/roles"),
-    ]);
-
-    const restaurantData = restaurants.data.data;
-    const branchData = branches.data.data;
-    const userData = users.data.data;
-    const roleData = roles.data.data;
-
-    return {
-      restaurants: {
-        total: restaurantData.length,
-        active: restaurantData.filter((r: any) => r.is_active).length,
-      },
-      branches: {
-        total: branchData.length,
-        active: branchData.filter((b: any) => b.is_active).length,
-      },
-      users: {
-        total: userData.length,
-        active: userData.filter((u: any) => u.is_active).length,
-      },
-      roles: {
-        total: roleData.length,
-        custom: roleData.filter((r: any) => !r.is_default).length,
-      },
-    };
+    const res = await api.get("/dashboard/stats");
+    return res.data.data;
   },
 };

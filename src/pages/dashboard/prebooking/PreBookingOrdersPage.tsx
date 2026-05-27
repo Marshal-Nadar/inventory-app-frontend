@@ -345,7 +345,9 @@ export const PreBookingOrdersPage = () => {
         id: "serial",
         header: "#",
         cell: ({ row }) => (
-          <span className='text-sm text-muted-foreground'>{row.index + 1}</span>
+          <span className='text-sm text-muted-foreground'>
+            {(page - 1) * limit + row.index + 1}
+          </span>
         ),
       }),
       columnHelper.accessor("order_id", {

@@ -232,7 +232,9 @@ export const PurchasesPage = () => {
         id: "serial",
         header: "S.No",
         cell: ({ row }) => (
-          <span className='text-sm text-muted-foreground'>{row.index + 1}</span>
+          <span className='text-sm text-muted-foreground'>
+            {(page - 1) * limit + row.index + 1}
+          </span>
         ),
       }),
       columnHelper.accessor("purchase_date", {
