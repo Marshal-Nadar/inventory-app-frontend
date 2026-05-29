@@ -81,6 +81,14 @@ export interface VendorReportMaterial {
   total_cost: number;
 }
 
+export interface VendorReportPurchaseItem {
+  raw_material_name: string;
+  category: string;
+  quantity: number;
+  metric: string;
+  price_per_unit: number;
+  total_cost: number;
+}
 export interface VendorReportPurchase {
   id: number;
   invoice_number: string;
@@ -88,6 +96,7 @@ export interface VendorReportPurchase {
   total_cost: number;
   restaurant_name: string;
   storage_room_name: string;
+  items: VendorReportPurchaseItem[]; // ← add this
 }
 
 export interface VendorReport {

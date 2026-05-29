@@ -35,6 +35,8 @@ import { ProductReportPage } from "@/pages/dashboard/prebooking/ProductReportPag
 import { AddSalesPage } from "@/pages/sales/AddSalesPage";
 import { SalesReportPage } from "@/pages/sales/SalesReportPage";
 import { PrintSettingsPage } from "@/pages/dashboard/settings/PrintSettingsPage";
+import { StockLedgerPage } from "@/pages/dashboard/stockLedger/StockLedgerPage";
+import { VendorReportPage } from "@/pages/dashboard/purchases/VendorReportPage";
 
 export const router = createBrowserRouter([
   {
@@ -67,6 +69,8 @@ export const router = createBrowserRouter([
       { path: "purchases/:id", element: <PurchaseDetailPage /> },
       { path: "purchases/purchase-report", element: <PurchaseReportPage /> },
       { path: "purchases/stock-summary", element: <StockSummaryPage /> },
+      { path: "purchases/stock-ledger", element: <StockLedgerPage /> },
+      { path: "purchases/vendor-report", element: <VendorReportPage /> },
       { path: "transfers", element: <TransferRequestsPage /> },
       { path: "transfers/new", element: <NewTransferRequestPage /> },
       { path: "transfers/branch-stock", element: <BranchStockViewPage /> },

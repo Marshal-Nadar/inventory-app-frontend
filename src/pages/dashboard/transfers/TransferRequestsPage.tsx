@@ -24,6 +24,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Search,
@@ -33,6 +34,8 @@ import {
   ArrowUpDown,
   ArrowLeftRight,
   Clock,
+  Pencil,
+  Eye,
 } from "lucide-react";
 import {
   transferRequestService,
@@ -43,6 +46,7 @@ import { useAppSelector } from "@/hooks/useAppSelector";
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import { TransferRequestDetailDialog } from "./TransferRequestDetailDialog";
+import { TransferRequestEditDialog } from "./TransferRequestEditDialog";
 
 const columnHelper = createColumnHelper<TransferRequest>();
 
@@ -90,6 +94,11 @@ export const TransferRequestsPage = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] =
     useState<TransferRequest | null>(null);
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingRequest, setEditingRequest] = useState<TransferRequest | null>(
+    null,
+  );
 
   const fetchRequests = async () => {
     try {
@@ -192,17 +201,6 @@ export const TransferRequestsPage = () => {
                 +{row.original.items.length - 2} more
               </span>
             )}
-            <Button
-              variant='ghost'
-              size='sm'
-              className='h-7 text-xs gap-1 px-2'
-              onClick={() => {
-                setSelectedRequest(row.original);
-                setDetailOpen(true);
-              }}
-            >
-              View Details
-            </Button>
           </div>
         ),
       }),
@@ -232,50 +230,84 @@ export const TransferRequestsPage = () => {
         cell: ({ row }) => {
           const isPending = row.original.status === "pending";
           const isRejected = row.original.status === "rejected";
+          const isApproved = row.original.status === "approved";
 
           return (
             <div className='flex items-center gap-2'>
-              {/* Store manager actions */}
-              {canManageStore && isPending && (
-                <>
-                  <Button
-                    size='sm'
-                    variant='outline'
-                    className='gap-1 text-green-600 border-green-200 hover:bg-green-50 h-8'
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant='ghost' size='icon' className='w-8 h-8'>
+                    <MoreHorizontal className='w-4 h-4' />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align='end' className='w-48'>
+                  {/* View */}
+                  <DropdownMenuItem
                     onClick={() => {
-                      setApprovingId(row.original.id);
-                      setApproveOpen(true);
+                      setSelectedRequest(row.original);
+                      setDetailOpen(true);
                     }}
                   >
-                    <CheckCircle className='w-3.5 h-3.5' />
-                    Approve
-                  </Button>
-                  <Button
-                    size='sm'
-                    variant='outline'
-                    className='gap-1 text-destructive border-red-200 hover:bg-red-50 h-8'
-                    onClick={() => {
-                      setRejectingId(row.original.id);
-                      setRejectOpen(true);
-                    }}
-                  >
-                    <XCircle className='w-3.5 h-3.5' />
-                    Reject
-                  </Button>
-                </>
-              )}
+                    <Eye className='mr-2 w-4 h-4' />
+                    View Details
+                  </DropdownMenuItem>
 
-              {/* Show rejection reason */}
-              {isRejected && row.original.rejection_reason && (
-                <span className='text-xs text-muted-foreground max-w-32 truncate'>
-                  {row.original.rejection_reason}
+                  {/* Edit — pending only */}
+                  {isPending && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setEditingRequest(row.original);
+                        setEditOpen(true);
+                      }}
+                    >
+                      <Pencil className='mr-2 w-4 h-4' />
+                      Edit Request
+                    </DropdownMenuItem>
+                  )}
+
+                  {/* Approve + Reject — store manager, pending only */}
+                  {canManageStore && isPending && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className='text-green-600 focus:text-green-600 focus:bg-green-50'
+                        onClick={() => {
+                          setApprovingId(row.original.id);
+                          setApproveOpen(true);
+                        }}
+                      >
+                        <CheckCircle className='mr-2 w-4 h-4' />
+                        Approve
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className='text-destructive focus:text-destructive focus:bg-red-50'
+                        onClick={() => {
+                          setRejectingId(row.original.id);
+                          setRejectOpen(true);
+                        }}
+                      >
+                        <XCircle className='mr-2 w-4 h-4' />
+                        Reject
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Status info beside the button */}
+              {isApproved && row.original.actioned_by_name && (
+                <span className='text-xs text-green-600 font-medium'>
+                  ✓ {row.original.actioned_by_name}
                 </span>
               )}
-
-              {/* Actioned by info */}
-              {!isPending && row.original.actioned_by_name && (
-                <span className='text-xs text-muted-foreground'>
-                  by {row.original.actioned_by_name}
+              {isRejected && (
+                <span
+                  className='text-xs text-destructive max-w-24 truncate'
+                  title={row.original.rejection_reason}
+                >
+                  ✕{" "}
+                  {row.original.rejection_reason ||
+                    row.original.actioned_by_name}
                 </span>
               )}
             </div>
@@ -454,6 +486,16 @@ export const TransferRequestsPage = () => {
       <p className='text-xs text-muted-foreground'>
         Showing {filtered.length} of {requests.length} requests
       </p>
+
+      <TransferRequestEditDialog
+        open={editOpen}
+        onClose={() => {
+          setEditOpen(false);
+          setEditingRequest(null);
+        }}
+        onSuccess={fetchRequests}
+        request={editingRequest}
+      />
 
       {/* Approve confirm dialog */}
       <DeleteConfirmDialog

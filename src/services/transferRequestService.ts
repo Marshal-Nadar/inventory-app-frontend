@@ -56,6 +56,17 @@ export const transferRequestService = {
     return res.data.data;
   },
 
+  update: async (
+    id: number,
+    payload: {
+      items: { raw_material_id: number; quantity: number; metric: string }[];
+      notes?: string;
+    },
+  ): Promise<TransferRequest> => {
+    const res = await api.put(`/transfer-requests/${id}`, payload);
+    return res.data.data;
+  },
+
   reject: async (
     id: number,
     rejection_reason: string,

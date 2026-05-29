@@ -30,6 +30,7 @@ import {
   type LucideIcon,
   Palette,
   Printer,
+  BookOpen,
 } from "lucide-react";
 
 export interface NavChild {
@@ -200,7 +201,7 @@ export const navItems: NavItem[] = [
     label: "Purchases",
     path: "/dashboard/purchases",
     icon: ShoppingCart,
-    roles: ["admin", "manager", "supervisor", "super_admin"],
+    roles: ["admin", "storekeeper", "super_admin"],
     children: [
       {
         label: "New Purchase",
@@ -213,19 +214,32 @@ export const navItems: NavItem[] = [
         icon: List,
       },
       {
-        label: "Purchase Report",
-        path: "/dashboard/purchases/purchase-report",
-        icon: BarChart2,
+        label: "Vendor Report",
+        path: "/dashboard/purchases/vendor-report",
+        icon: FileText,
+      },
+    ],
+  },
+  {
+    label: "Inventory",
+    path: "/dashboard/inventory",
+    icon: Package,
+    roles: ["admin", "storekeeper", "super_admin"],
+    children: [
+      {
+        label: "Stock Dashboard",
+        path: "/dashboard/purchases/stock-dashboard",
+        icon: LayoutDashboard,
       },
       {
         label: "Stock Summary",
         path: "/dashboard/purchases/stock-summary",
-        icon: Package,
+        icon: BarChart2,
       },
       {
-        label: "Stock Dashboard",
-        path: "/dashboard/purchases/stock-dashboard",
-        icon: BarChart,
+        label: "Stock Ledger",
+        path: "/dashboard/purchases/stock-ledger",
+        icon: BookOpen,
       },
     ],
   },

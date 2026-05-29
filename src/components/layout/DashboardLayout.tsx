@@ -26,7 +26,8 @@ const pageTitles: Record<string, string> = {
   "/dashboard/purchases/new": "New Purchase",
   "/dashboard/purchases/stock-summary": "Stock Summary",
   "/dashboard/purchases/stock-dashboard": "Stock Dashboard",
-  "/dashboard/purchases/vendor-report": "Purchase Report",
+  "/dashboard/purchases/vendor-report": "Vendor Report",
+  "/dashboard/purchases/stock-ledger": "Stock Ledger",
   "/dashboard/transfers": "Transfer Requests",
   "/dashboard/transfers/new": "New Transfer Request",
   "/dashboard/transfers/branch-stock": "Branch Stock View",
@@ -67,7 +68,7 @@ export const DashboardLayout = () => {
     <SidebarProvider open={isOpen} onOpenChange={handleOpenChange}>
       <AppSidebar />
       <SidebarInset>
-        <header className='flex h-14 shrink-0 items-center gap-2 border-b px-4'>
+        <header className='flex h-14 shrink-0 items-center gap-2 border-b px-4 sticky top-0 z-10 bg-background'>
           <SidebarTrigger className='-ml-1' />
           <Separator orientation='vertical' className='mr-2 h-4' />
           <div className='flex flex-1 items-center justify-between'>
