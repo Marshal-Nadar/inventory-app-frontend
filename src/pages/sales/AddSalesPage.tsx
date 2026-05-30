@@ -15,7 +15,7 @@ import { branchService, type Branch } from "@/services/branchService";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Save, RefreshCw } from "lucide-react";
+import { Save, RefreshCw, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -185,7 +185,19 @@ export const AddSalesPage = () => {
     }
   };
 
-  const formattedDate = saleDate ? format(saleDate, "yyyy-MM-dd") : today;
+  if (user?.is_super_admin) {
+    return (
+      <div className='text-center py-16 space-y-3'>
+        <AlertTriangle className='w-10 h-10 text-orange-600 mx-auto opacity-50' />
+        <p className='text-sm font-medium text-foreground'>
+          Super Admin cannot create operational records.
+        </p>
+        <p className='text-xs text-muted-foreground'>
+          Log in as a restaurant admin to perform this action.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className='space-y-6 max-w-3xl'>

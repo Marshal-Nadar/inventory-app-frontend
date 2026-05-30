@@ -27,7 +27,7 @@ import { branchService, type Branch } from "@/services/branchService";
 import { preBookingService } from "@/services/preBookingService";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { toast } from "sonner";
-import { Plus, Trash2, ShoppingCart } from "lucide-react";
+import { Plus, Trash2, ShoppingCart, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 
 const PAYMENT_METHODS = [
@@ -261,6 +261,20 @@ export const CreatePreBookingPage = () => {
       setLoading(false);
     }
   };
+
+  if (user?.is_super_admin) {
+    return (
+      <div className='text-center py-16 space-y-3'>
+        <AlertTriangle className='w-10 h-10 text-orange-600 mx-auto opacity-50' />
+        <p className='text-sm font-medium text-foreground'>
+          Super Admin cannot create operational records.
+        </p>
+        <p className='text-xs text-muted-foreground'>
+          Log in as a restaurant admin to perform this action.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className='space-y-6 max-w-4xl'>

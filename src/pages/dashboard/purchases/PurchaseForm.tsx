@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Plus, X, ShoppingCart } from "lucide-react";
+import { Plus, X, ShoppingCart, AlertTriangle } from "lucide-react";
 import { vendorService, type Vendor } from "@/services/vendorService";
 import {
   rawMaterialService,
@@ -197,6 +197,20 @@ export const PurchaseForm = () => {
       setLoading(false);
     }
   };
+
+  if (user?.is_super_admin) {
+    return (
+      <div className='text-center py-16 space-y-3'>
+        <AlertTriangle className='w-10 h-10 text-orange-600 mx-auto opacity-50' />
+        <p className='text-sm font-medium text-foreground'>
+          Super Admin cannot create operational records.
+        </p>
+        <p className='text-xs text-muted-foreground'>
+          Log in as a restaurant admin to perform this action.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className='space-y-6 max-w-4xl'>

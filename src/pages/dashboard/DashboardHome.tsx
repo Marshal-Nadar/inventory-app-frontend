@@ -12,8 +12,6 @@ import {
   ShieldCheck,
   TrendingUp,
   ArrowRight,
-  Building2,
-  AlertTriangle,
   ArrowRightLeft,
   CalendarCheck,
   Wallet,
@@ -30,6 +28,7 @@ import {
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { SuperAdminDashboard } from "./SuperAdminDashboard";
 
 // ─── Stat Card ────────────────────────────────────────────────────
 
@@ -160,7 +159,7 @@ const AlertCard = ({
 
 // ─── Main ─────────────────────────────────────────────────────────
 
-export const DashboardHome = () => {
+const AdminDashboard = () => {
   const navigate = useNavigate();
   const user = useAppSelector((state) => state.auth.user);
   const isSuperAdmin = user?.is_super_admin;
@@ -574,4 +573,14 @@ export const DashboardHome = () => {
       </div>
     </div>
   );
+};
+
+export const DashboardHome = () => {
+  const user = useAppSelector((state) => state.auth.user);
+
+  if (user?.is_super_admin) {
+    return <SuperAdminDashboard />;
+  }
+
+  return <AdminDashboard />;
 };
