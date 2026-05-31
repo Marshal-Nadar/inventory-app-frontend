@@ -98,12 +98,22 @@ export const vendorPaymentService = {
 
   getPending: async (
     vendorId?: string,
+    page: number = 1,
+    limit: number = 20,
   ): Promise<{
     pending: PendingPayment[];
     total_due: number;
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
   }> => {
     const params = new URLSearchParams();
     if (vendorId) params.append("vendor_id", vendorId);
+    params.append("page", String(page));
+    params.append("limit", String(limit));
     const res = await api.get(`/vendor-payments/pending?${params}`);
     return res.data.data;
   },

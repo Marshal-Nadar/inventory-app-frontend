@@ -37,6 +37,7 @@ import { SalesReportPage } from "@/pages/sales/SalesReportPage";
 import { PrintSettingsPage } from "@/pages/dashboard/settings/PrintSettingsPage";
 import { StockLedgerPage } from "@/pages/dashboard/stockLedger/StockLedgerPage";
 import { VendorReportPage } from "@/pages/dashboard/purchases/VendorReportPage";
+import { ChangePasswordPage } from "@/pages/dashboard/settings/ChangePasswordPage";
 
 export const router = createBrowserRouter([
   {
@@ -86,6 +87,7 @@ export const router = createBrowserRouter([
       { path: "sales/report", element: <SalesReportPage /> },
       { path: "settings/appearance", element: <SettingsPage /> },
       { path: "settings/print", element: <PrintSettingsPage /> },
+      { path: "settings/change-password", element: <ChangePasswordPage /> },
     ],
   },
   {

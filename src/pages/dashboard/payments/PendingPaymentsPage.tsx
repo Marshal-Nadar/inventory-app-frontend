@@ -28,6 +28,7 @@ import {
 import { vendorService, type Vendor } from "@/services/vendorService";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { TablePagination } from "@/components/common/TablePagination";
 
 const columnHelper = createColumnHelper<PendingPayment>();
 
@@ -42,18 +43,28 @@ export const PendingPaymentsPage = () => {
     { id: "purchase_date", desc: false },
   ]);
 
-  useEffect(() => {
-    vendorService.getAll().then(setVendors);
-  }, []);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const handleFilter = async () => {
+  const handleFilter = async (overrides?: {
+    page?: number;
+    limit?: number;
+  }) => {
     setLoading(true);
     try {
-      const data = await vendorPaymentService.getPending(vendorId || undefined);
+      const data = await vendorPaymentService.getPending(
+        vendorId || undefined,
+        overrides?.page ?? page,
+        overrides?.limit ?? limit,
+      );
       setPending(data.pending);
       setTotalDue(data.total_due);
+      setTotal(data.pagination.total);
+      setTotalPages(data.pagination.totalPages);
       setSearched(true);
-      if (data.pending.length === 0) {
+      if (data.pagination.total === 0) {
         toast.success("No pending payments — all cleared!");
       }
     } catch {
@@ -63,13 +74,30 @@ export const PendingPaymentsPage = () => {
     }
   };
 
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    handleFilter({ page: newPage });
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1);
+    handleFilter({ page: 1, limit: newLimit });
+  };
+
+  useEffect(() => {
+    vendorService.getAll().then(setVendors);
+  }, []);
+
   const columns = useMemo(
     () => [
       columnHelper.display({
         id: "serial",
         header: "S.No",
         cell: ({ row }) => (
-          <span className='text-sm text-muted-foreground'>{row.index + 1}</span>
+          <span className='text-sm text-muted-foreground'>
+            {(page - 1) * limit + row.index + 1}
+          </span>
         ),
       }),
       columnHelper.accessor("vendor_name", {
@@ -196,7 +224,14 @@ export const PendingPaymentsPage = () => {
               />
             </div>
 
-            <Button onClick={handleFilter} disabled={loading} className='gap-2'>
+            <Button
+              onClick={() => {
+                setPage(1);
+                handleFilter({ page: 1 });
+              }}
+              disabled={loading}
+              className='gap-2'
+            >
               <Filter className='w-4 h-4' />
               {loading ? "Loading..." : "Filter"}
             </Button>
@@ -214,9 +249,7 @@ export const PendingPaymentsPage = () => {
                 <p className='text-xs text-muted-foreground'>
                   Pending Invoices
                 </p>
-                <p className='text-2xl font-bold text-foreground'>
-                  {pending.length}
-                </p>
+                <p className='text-2xl font-bold text-foreground'>{total}</p>
               </CardContent>
             </Card>
             <Card>
@@ -291,6 +324,15 @@ export const PendingPaymentsPage = () => {
                   )}
                 </TableBody>
               </Table>
+
+              <TablePagination
+                page={page}
+                totalPages={totalPages}
+                total={total}
+                limit={limit}
+                onPageChange={handlePageChange}
+                onLimitChange={handleLimitChange}
+              />
             </CardContent>
           </Card>
 
@@ -309,7 +351,7 @@ export const PendingPaymentsPage = () => {
           )}
 
           <p className='text-xs text-muted-foreground'>
-            {pending.length} pending invoice{pending.length !== 1 ? "s" : ""}
+            {total} pending invoice{total !== 1 ? "s" : ""}
           </p>
         </div>
       )}

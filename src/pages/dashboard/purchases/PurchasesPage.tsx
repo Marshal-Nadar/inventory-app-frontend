@@ -210,7 +210,6 @@ export const PurchasesPage = () => {
     }
   };
 
-  console.log("editOpeneditOpen", editOpen);
   // ─── Search filter (client side on already-fetched data) ─────────
 
   const filtered = useMemo(
@@ -319,7 +318,6 @@ export const PurchasesPage = () => {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  console.log("firstsdsdsd", row.original.id, editOpen);
                   setEditingPurchaseId(row.original.id);
                   setEditOpen(true);
                 }}

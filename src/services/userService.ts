@@ -54,4 +54,22 @@ export const userService = {
   delete: async (id: number): Promise<void> => {
     await api.delete(`/users/${id}`);
   },
+
+  changePassword: async (payload: {
+    current_password: string;
+    new_password: string;
+    confirm_password: string;
+  }): Promise<void> => {
+    await api.post("/auth/change-password", payload);
+  },
+
+  resetPassword: async (
+    userId: number,
+    payload: {
+      new_password: string;
+      confirm_password: string;
+    },
+  ): Promise<void> => {
+    await api.post(`/auth/reset-password/${userId}`, payload);
+  },
 };

@@ -33,9 +33,17 @@ export interface TransferRequest {
 }
 
 export const transferRequestService = {
-  getAll: async (): Promise<TransferRequest[]> => {
-    const res = await api.get("/transfer-requests");
-    return res.data.data;
+  getAll: async (filters?: {
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{ data: TransferRequest[]; pagination: any }> => {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append("status", filters.status);
+    params.append("page", String(filters?.page || 1));
+    params.append("limit", String(filters?.limit || 20));
+    const res = await api.get(`/transfer-requests?${params}`);
+    return { data: res.data.data, pagination: res.data.pagination };
   },
 
   create: async (payload: {

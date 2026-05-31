@@ -31,6 +31,7 @@ import {
   Palette,
   Printer,
   BookOpen,
+  Lock,
 } from "lucide-react";
 
 export interface NavChild {
@@ -126,7 +127,7 @@ export const navItems: NavItem[] = [
     label: "Users",
     path: "/dashboard/users",
     icon: Users,
-    roles: ["admin", "manager", "super_admin"],
+    roles: ["admin", "super_admin"],
   },
   {
     label: "Roles",
@@ -302,7 +303,7 @@ export const navItems: NavItem[] = [
     label: "Settings",
     path: "/dashboard/settings",
     icon: Settings,
-    roles: ["admin", "super_admin"],
+    roles: ["admin", "manager", "super_admin"],
     children: [
       {
         label: "Appearance",
@@ -314,6 +315,11 @@ export const navItems: NavItem[] = [
         path: "/dashboard/settings/print",
         icon: Printer,
         roles: ["admin", "super_admin"],
+      },
+      {
+        label: "Change Password",
+        path: "/dashboard/settings/change-password",
+        icon: Lock,
       },
     ],
   },

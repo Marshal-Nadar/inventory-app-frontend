@@ -47,6 +47,8 @@ import { format } from "date-fns";
 import { MiscExpenseViewDialog } from "./MiscExpenseViewDialog";
 import { MiscExpenseEditDialog } from "./MiscExpenseEditDialog";
 
+import { TablePagination } from "@/components/common/TablePagination";
+
 const columnHelper = createColumnHelper<MiscExpense>();
 
 const today = format(new Date(), "yyyy-MM-dd");
@@ -78,26 +80,41 @@ export const ExpenseListPage = () => {
     null,
   );
 
-  const fetchExpenses = async () => {
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchExpenses = async (overrides?: {
+    page?: number;
+    limit?: number;
+  }) => {
     try {
       setLoading(true);
-      const data = await miscExpenseService.getAll();
-      // everyone sees only today — filter by expense_date
-      const todayExpenses = data.filter((e) => {
-        if (!e.expense_date) return false;
-
-        const expDate = format(new Date(e.expense_date), "yyyy-MM-dd");
-
-        console.log("converted:", expDate);
-
-        return expDate === today;
+      const result = await miscExpenseService.getAll({
+        date: today,
+        page: overrides?.page ?? page,
+        limit: overrides?.limit ?? limit,
       });
-      setExpenses(todayExpenses);
+      setExpenses(result.data);
+      setTotal(result.pagination.total);
+      setTotalPages(result.pagination.totalPages);
     } catch {
       toast.error("Failed to load expenses");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchExpenses({ page: newPage });
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1);
+    fetchExpenses({ page: 1, limit: newLimit });
   };
 
   useEffect(() => {
@@ -143,7 +160,9 @@ export const ExpenseListPage = () => {
         id: "serial",
         header: "S.No",
         cell: ({ row }) => (
-          <span className='text-sm text-muted-foreground'>{row.index + 1}</span>
+          <span className='text-sm text-muted-foreground'>
+            {(page - 1) * limit + row.index + 1}
+          </span>
         ),
       }),
       ...(isAdmin
@@ -370,9 +389,7 @@ export const ExpenseListPage = () => {
               <p className='text-2xl font-bold text-foreground'>
                 ₹{totalAmount.toFixed(2)}
               </p>
-              <p className='text-xs text-muted-foreground'>
-                {filtered.length} expenses
-              </p>
+              <p className='text-xs text-muted-foreground'>{total} expenses</p>
             </CardContent>
           </Card>
           <Card>
@@ -451,6 +468,17 @@ export const ExpenseListPage = () => {
               </Table>
             </CardContent>
           </Card>
+          <TablePagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            limit={limit}
+            onPageChange={handlePageChange}
+            onLimitChange={handleLimitChange}
+          />
+          <p className='text-xs text-muted-foreground'>
+            Showing {filtered.length} of {total} expenses
+          </p>
 
           <Separator />
           <div className='flex justify-end gap-6 pr-2'>

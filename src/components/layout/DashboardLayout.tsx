@@ -46,6 +46,7 @@ const pageTitles: Record<string, string> = {
   "/dashboard/sales/report": "Sales Report",
   "/dashboard/settings/print": "Print Settings",
   "/dashboard/settings/appearance": "Appearance Settings",
+  "/dashboard/settings/change-password": "Change Password",
 };
 
 export const DashboardLayout = () => {

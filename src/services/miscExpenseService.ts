@@ -26,9 +26,17 @@ export interface MiscExpenseReportStats {
 }
 
 export const miscExpenseService = {
-  getAll: async (): Promise<MiscExpense[]> => {
-    const res = await api.get("/misc-expenses");
-    return res.data.data;
+  getAll: async (filters?: {
+    date?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{ data: MiscExpense[]; pagination: any }> => {
+    const params = new URLSearchParams();
+    if (filters?.date) params.append("date", filters.date);
+    params.append("page", String(filters?.page || 1));
+    params.append("limit", String(filters?.limit || 20));
+    const res = await api.get(`/misc-expenses?${params}`);
+    return { data: res.data.data, pagination: res.data.pagination };
   },
 
   create: async (payload: {

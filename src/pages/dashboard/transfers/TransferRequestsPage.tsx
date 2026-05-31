@@ -47,6 +47,7 @@ import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import { TransferRequestDetailDialog } from "./TransferRequestDetailDialog";
 import { TransferRequestEditDialog } from "./TransferRequestEditDialog";
+import { TablePagination } from "@/components/common/TablePagination";
 
 const columnHelper = createColumnHelper<TransferRequest>();
 
@@ -100,16 +101,40 @@ export const TransferRequestsPage = () => {
     null,
   );
 
-  const fetchRequests = async () => {
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchRequests = async (overrides?: {
+    page?: number;
+    limit?: number;
+  }) => {
     try {
       setLoading(true);
-      const data = await transferRequestService.getAll();
-      setRequests(data);
+      const result = await transferRequestService.getAll({
+        page: overrides?.page ?? page,
+        limit: overrides?.limit ?? limit,
+      });
+      setRequests(result.data);
+      setTotal(result.pagination.total);
+      setTotalPages(result.pagination.totalPages);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchRequests({ page: newPage });
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1);
+    fetchRequests({ page: 1, limit: newLimit });
   };
 
   useEffect(() => {
@@ -154,7 +179,9 @@ export const TransferRequestsPage = () => {
         id: "serial",
         header: "S.No",
         cell: ({ row }) => (
-          <span className='text-sm text-muted-foreground'>{row.index + 1}</span>
+          <span className='text-sm text-muted-foreground'>
+            {(page - 1) * limit + row.index + 1}
+          </span>
         ),
       }),
       columnHelper.accessor("created_at", {
@@ -482,6 +509,15 @@ export const TransferRequestsPage = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <TablePagination
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        limit={limit}
+        onPageChange={handlePageChange}
+        onLimitChange={handleLimitChange}
+      />
 
       <p className='text-xs text-muted-foreground'>
         Showing {filtered.length} of {requests.length} requests

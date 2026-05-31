@@ -33,6 +33,7 @@ import {
   Pencil,
   Trash2,
   ArrowUpDown,
+  KeyRound,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -44,6 +45,7 @@ import {
 import { UserFormDialog } from "./UserFormDialog";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import { useAppSelector } from "@/hooks/useAppSelector";
+import { ResetPasswordDialog } from "@/components/common/ResetPasswordDialog";
 
 const columnHelper = createColumnHelper<User>();
 
@@ -64,6 +66,9 @@ export const UsersPage = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetUser, setResetUser] = useState<User | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -208,6 +213,7 @@ export const UsersPage = () => {
                 <Pencil className='mr-2 w-4 h-4' />
                 Edit
               </DropdownMenuItem>
+
               <DropdownMenuItem
                 className='text-destructive focus:text-destructive'
                 onClick={() => {
@@ -217,6 +223,16 @@ export const UsersPage = () => {
               >
                 <Trash2 className='mr-2 w-4 h-4' />
                 Delete
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => {
+                  setResetUser(row.original);
+                  setResetOpen(true);
+                }}
+              >
+                <KeyRound className='mr-2 w-4 h-4' />
+                Reset Password
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -367,6 +383,16 @@ export const UsersPage = () => {
         title='Delete User'
         description={`Are you sure you want to delete ${deletingUser?.name}? This action cannot be undone.`}
         loading={deleteLoading}
+      />
+
+      {/* ResetPassword dialog */}
+      <ResetPasswordDialog
+        open={resetOpen}
+        onClose={() => {
+          setResetOpen(false);
+          setResetUser(null);
+        }}
+        user={resetUser}
       />
     </div>
   );
