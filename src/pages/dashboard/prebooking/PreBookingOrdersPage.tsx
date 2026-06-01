@@ -350,14 +350,14 @@ export const PreBookingOrdersPage = () => {
           </span>
         ),
       }),
-      columnHelper.accessor("order_id", {
-        header: "Order ID",
-        cell: (info) => (
-          <code className='text-xs bg-muted px-2 py-1 rounded font-mono'>
-            {info.getValue()}
-          </code>
-        ),
-      }),
+      // columnHelper.accessor("order_id", {
+      //   header: "Order ID",
+      //   cell: (info) => (
+      //     <code className='text-xs bg-muted px-2 py-1 rounded font-mono'>
+      //       {info.getValue()}
+      //     </code>
+      //   ),
+      // }),
       columnHelper.accessor("customer_name", {
         header: ({ column }) => (
           <Button
@@ -410,6 +410,28 @@ export const PreBookingOrdersPage = () => {
             </p>
           </div>
         ),
+      }),
+      columnHelper.display({
+        id: "products",
+        header: "Products",
+        cell: ({ row }) => {
+          const items = row.original.items;
+          if (!items || items.length === 0) {
+            return <span className='text-xs text-muted-foreground'>—</span>;
+          }
+          return (
+            <div className='space-y-0.5'>
+              {items.map((item, i) => (
+                <p key={i} className='text-xs text-foreground'>
+                  {item.product_name}{" "}
+                  <span className='text-muted-foreground'>
+                    ({item.quantity})
+                  </span>
+                </p>
+              ))}
+            </div>
+          );
+        },
       }),
       columnHelper.accessor("final_amount", {
         header: "Final Amount",

@@ -428,6 +428,11 @@ input[type="number"] {
   /* hide browser default header/footer */
   @page {
     margin: 15mm;
+    size: auto;
+    margin-top: 10mm;
+    margin-bottom: 10mm;
+    margin-left: 10mm;
+    margin-right: 10mm;
   }
 
   /* hide everything */

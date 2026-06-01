@@ -7,7 +7,6 @@ import { type Purchase } from "@/services/purchaseService";
 
 export const preBookingPrintColumns = [
   { header: "#", accessor: (_: PreBooking, i?: number) => (i ?? 0) + 1 },
-  { header: "Order ID", accessor: (r: PreBooking) => r.order_id },
   { header: "Customer", accessor: (r: PreBooking) => r.customer_name },
   { header: "Mobile", accessor: (r: PreBooking) => r.mobile },
   { header: "Branch", accessor: (r: PreBooking) => r.branch_name || "" },
@@ -18,6 +17,13 @@ export const preBookingPrintColumns = [
         new Date(`${r.delivery_date.split("T")[0]}T00:00:00`),
         "dd MMM yyyy",
       ),
+  },
+  {
+    header: "Products",
+    accessor: (r: PreBooking) =>
+      r.items
+        ?.map((item) => `${item.product_name} (${item.quantity})`)
+        .join(", ") || "—",
   },
   {
     header: "Final Amount",

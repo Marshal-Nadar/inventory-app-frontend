@@ -3,7 +3,7 @@ import { format } from "date-fns";
 
 interface Column {
   header: string;
-  accessor: (row: any) => string | number | React.ReactNode;
+  accessor: (row: any, index?: number) => string | number | React.ReactNode;
   align?: "left" | "right" | "center";
 }
 
@@ -23,13 +23,13 @@ export const PrintTableLayout = ({
   summary,
 }: Props) => {
   return (
-    <div id='print-area'>
+    <div id='print-area' style={{ display: "none" }}>
       <div
         style={{
-          fontFamily: "Arial, sans-serif",
+          fontFamily: "'Segoe UI', Arial, sans-serif",
           fontSize: "12px",
-          color: "#000",
-          padding: "20px",
+          color: "#111",
+          padding: "16px 24px",
           maxWidth: "100%",
         }}
       >
@@ -39,69 +39,74 @@ export const PrintTableLayout = ({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-start",
-            paddingBottom: "12px",
-            borderBottom: "2px solid #000",
-            marginBottom: "12px",
+            paddingBottom: "14px",
+            borderBottom: "2px solid #111",
+            marginBottom: "18px",
           }}
         >
           <div>
             <div
               style={{
-                fontSize: "18px",
-                fontWeight: "bold",
-                marginBottom: "4px",
+                fontSize: "16px",
+                fontWeight: "700",
+                marginBottom: "3px",
               }}
             >
               {settings.print_company_name || settings.name}
             </div>
             {settings.print_address && (
               <div
-                style={{ fontSize: "11px", color: "#444", marginBottom: "2px" }}
+                style={{ fontSize: "11px", color: "#555", marginBottom: "2px" }}
               >
                 {settings.print_address}
               </div>
             )}
             {settings.print_contact && (
-              <div style={{ fontSize: "11px", color: "#444" }}>
-                Tel: {settings.print_contact}
+              <div style={{ fontSize: "11px", color: "#555" }}>
+                Mob: {settings.print_contact}
               </div>
             )}
           </div>
           <div style={{ textAlign: "right" }}>
             <div
               style={{
-                fontSize: "14px",
-                fontWeight: "bold",
+                fontSize: "16px",
+                fontWeight: "700",
                 marginBottom: "4px",
               }}
             >
               {title}
             </div>
-            <div style={{ fontSize: "11px", color: "#444" }}>
+            <div style={{ fontSize: "11px", color: "#555" }}>
               {format(new Date(), "dd MMM yyyy, hh:mm a")}
             </div>
           </div>
         </div>
 
-        {/* Table */}
+        {/* Table — full border grid */}
         <table
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            marginBottom: "16px",
+            marginBottom: "20px",
+            border: "1px solid #bbb",
           }}
         >
           <thead>
-            <tr style={{ backgroundColor: "#f5f5f5" }}>
+            <tr style={{ backgroundColor: "#f0f0f0" }}>
               {columns.map((col, i) => (
                 <th
                   key={i}
                   style={{
-                    border: "1px solid #ddd",
-                    padding: "6px 8px",
+                    border: "1px solid #bbb",
+                    padding: "8px 10px",
                     fontSize: "11px",
-                    fontWeight: "bold",
+                    fontWeight: "700",
                     textAlign: col.align || "left",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.4px",
+                    color: "#222",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {col.header}
@@ -121,13 +126,15 @@ export const PrintTableLayout = ({
                   <td
                     key={j}
                     style={{
-                      border: "1px solid #ddd",
-                      padding: "6px 8px",
+                      border: "1px solid #bbb",
+                      padding: "8px 10px",
                       fontSize: "11px",
                       textAlign: col.align || "left",
+                      verticalAlign: "top",
+                      lineHeight: "1.5",
                     }}
                   >
-                    {col.accessor(row)}
+                    {col.accessor(row, i)}
                   </td>
                 ))}
               </tr>
@@ -141,83 +148,77 @@ export const PrintTableLayout = ({
             style={{
               display: "flex",
               justifyContent: "flex-end",
-              marginBottom: "24px",
+              marginBottom: "28px",
             }}
           >
-            <table style={{ borderCollapse: "collapse", minWidth: "240px" }}>
-              {summary.map((s, i) => (
-                <tr key={i}>
-                  <td
-                    style={{
-                      padding: "3px 12px 3px 0",
-                      fontSize: "11px",
-                      color: "#444",
-                      textAlign: "right",
-                    }}
-                  >
-                    {s.label}
-                  </td>
-                  <td
-                    style={{
-                      padding: "3px 0",
-                      fontSize: "11px",
-                      fontWeight: "bold",
-                      textAlign: "right",
-                    }}
-                  >
-                    {s.value}
-                  </td>
-                </tr>
-              ))}
+            <table
+              style={{
+                borderCollapse: "collapse",
+                minWidth: "240px",
+                border: "1px solid #bbb",
+              }}
+            >
+              <tbody>
+                {summary.map((s, i) => (
+                  <tr key={i}>
+                    <td
+                      style={{
+                        border: "1px solid #bbb",
+                        padding: "7px 14px",
+                        fontSize: "11px",
+                        color: "#555",
+                        textAlign: "right",
+                      }}
+                    >
+                      {s.label}
+                    </td>
+                    <td
+                      style={{
+                        border: "1px solid #bbb",
+                        padding: "7px 14px",
+                        fontSize: "12px",
+                        fontWeight: "700",
+                        textAlign: "right",
+                        minWidth: "90px",
+                      }}
+                    >
+                      {s.value}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           </div>
         )}
 
-        {/* Footer */}
-        <div
-          style={{
-            borderTop: "1px solid #000",
-            paddingTop: "12px",
-          }}
-        >
-          {settings.print_footer_note && (
-            <div
-              style={{
-                textAlign: "center",
-                fontSize: "11px",
-                color: "#444",
-                marginBottom: "32px",
-              }}
-            >
-              {settings.print_footer_note}
-            </div>
-          )}
+        {/* Footer — no separator, no footer note section */}
+        <div style={{ marginTop: "40px" }}>
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
-              marginTop: "40px",
-              paddingTop: "8px",
+              gap: "80px",
             }}
           >
-            <div style={{ textAlign: "center", flex: 1 }}>
+            <div style={{ flex: 1, textAlign: "center" }}>
               <div
                 style={{
-                  borderTop: "1px solid #000",
+                  borderTop: "1px solid #333",
                   paddingTop: "6px",
                   fontSize: "11px",
+                  color: "#333",
                 }}
               >
                 Authorized Signature
               </div>
             </div>
-            <div style={{ flex: 1 }} />
-            <div style={{ textAlign: "center", flex: 1 }}>
+            <div style={{ flex: 1, textAlign: "center" }}>
               <div
                 style={{
-                  borderTop: "1px solid #000",
+                  borderTop: "1px solid #333",
                   paddingTop: "6px",
                   fontSize: "11px",
+                  color: "#333",
                 }}
               >
                 Receiver's Signature

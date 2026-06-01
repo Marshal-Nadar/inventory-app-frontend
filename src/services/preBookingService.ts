@@ -38,8 +38,12 @@ export interface PreBooking {
   notes: string;
   created_by_name: string;
   created_at: string;
-  items?: PreBookingItem[];
+  // items?: PreBookingItem[];
   payment_history?: PreBookingPayment[];
+  items?: {
+    product_name: string;
+    quantity: number;
+  }[];
 }
 
 export interface CreatePreBookingPayload {
