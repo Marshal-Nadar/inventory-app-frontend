@@ -19,6 +19,7 @@ import {
 } from "@/services/transferRequestService";
 import { rawMaterialService } from "@/services/rawMaterialService";
 import { toast } from "sonner";
+import { NumberInput } from "@/components/ui/number-input";
 
 interface EditableItem {
   raw_material_id: number;
@@ -247,6 +248,16 @@ export const TransferRequestEditDialog = ({
                         : ""
                     }
                   />
+                  {/* <NumberInput
+                    min='0.001'
+                    value={item.quantity}
+                    onChange={(value) => updateQty(index, value)}
+                    className={
+                      item.quantity > item.current_stock
+                        ? "border-destructive"
+                        : ""
+                    }
+                  /> */}
                 </div>
 
                 {/* Metric */}

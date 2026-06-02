@@ -29,6 +29,7 @@ import { useAppSelector } from "@/hooks/useAppSelector";
 import { toast } from "sonner";
 import { Plus, Trash2, ShoppingCart, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
+import { NumberInput } from "@/components/ui/number-input";
 
 const PAYMENT_METHODS = [
   { value: "cash", label: "Cash" },
@@ -454,13 +455,11 @@ export const CreatePreBookingPage = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Input
-                            type='number'
+                          <NumberInput
                             min='0'
-                            step='0.01'
                             value={item.product_discount}
-                            onChange={(e) =>
-                              updateItemDiscount(index, e.target.value)
+                            onChange={(value) =>
+                              updateItemDiscount(index, value)
                             }
                             className='w-24'
                           />
@@ -521,12 +520,10 @@ export const CreatePreBookingPage = () => {
                       <span className='text-muted-foreground'>
                         Overall Discount
                       </span>
-                      <Input
-                        type='number'
+                      <NumberInput
                         min='0'
-                        step='0.01'
                         value={overallDiscount}
-                        onChange={(e) => setOverallDiscount(e.target.value)}
+                        onChange={setOverallDiscount}
                         className='w-28 h-8 text-right'
                       />
                     </div>
@@ -552,12 +549,10 @@ export const CreatePreBookingPage = () => {
           <CardContent className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
             <div className='space-y-2'>
               <Label>Amount Paid (₹)</Label>
-              <Input
-                type='number'
+              <NumberInput
                 min='0'
-                step='0.01'
                 value={amountPaid}
-                onChange={(e) => setAmountPaid(e.target.value)}
+                onChange={setAmountPaid}
                 placeholder='0.00'
               />
             </div>

@@ -66,6 +66,7 @@ import { usePrintSettings } from "@/hooks/usePrintSettings";
 import { triggerPrint } from "@/hooks/usePrint";
 import { type PrintSettings } from "@/services/printSettingsService";
 import { preBookingPrintColumns } from "@/config/printColumns";
+import { NumberInput } from "@/components/ui/number-input";
 
 const columnHelper = createColumnHelper<PreBooking>();
 
@@ -778,7 +779,7 @@ export const PreBookingOrdersPage = () => {
                 Max payable: ₹
                 {Number(paymentOrder?.pending_balance || 0).toFixed(2)}
               </p>
-              <Input
+              {/* <Input
                 type='number'
                 min='0.01'
                 step='0.01'
@@ -787,6 +788,13 @@ export const PreBookingOrdersPage = () => {
                 value={additionalPayment}
                 onChange={(e) => setAdditionalPayment(e.target.value)}
                 required
+              /> */}
+
+              <NumberInput
+                min='0.01'
+                value={additionalPayment}
+                onChange={setAdditionalPayment}
+                placeholder='Enter amount'
               />
             </div>
 

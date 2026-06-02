@@ -229,8 +229,8 @@ export const ExpenseReportPage = () => {
             variant='outline'
             className={
               info.getValue() === "cash"
-                ? "text-orange-600 border-orange-200 text-xs"
-                : "text-blue-600 border-blue-200 text-xs"
+                ? "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800 text-xs"
+                : "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800 text-xs"
             }
           >
             {info.getValue() === "cash" ? "Cash" : "UPI"}
@@ -425,7 +425,7 @@ export const ExpenseReportPage = () => {
               <Card>
                 <CardContent className='pt-4 space-y-1'>
                   <p className='text-xs text-muted-foreground'>Cash</p>
-                  <p className='text-2xl font-bold text-orange-600'>
+                  <p className='text-2xl font-bold text-foreground'>
                     ₹{stats.cash.toFixed(2)}
                   </p>
                 </CardContent>
@@ -433,7 +433,7 @@ export const ExpenseReportPage = () => {
               <Card>
                 <CardContent className='pt-4 space-y-1'>
                   <p className='text-xs text-muted-foreground'>UPI</p>
-                  <p className='text-2xl font-bold text-blue-600'>
+                  <p className='text-2xl font-bold text-foreground'>
                     ₹{stats.upi.toFixed(2)}
                   </p>
                 </CardContent>
@@ -497,11 +497,17 @@ export const ExpenseReportPage = () => {
 
               <Separator />
               <div className='flex justify-end gap-6 pr-2'>
-                <span className='text-sm text-orange-600'>
-                  Cash: ₹{stats?.cash.toFixed(2)}
+                <span className='text-sm text-muted-foreground'>
+                  Cash:{" "}
+                  <span className='font-semibold text-foreground'>
+                    ₹{stats?.cash.toFixed(2)}
+                  </span>
                 </span>
-                <span className='text-sm text-blue-600'>
-                  UPI: ₹{stats?.upi.toFixed(2)}
+                <span className='text-sm text-muted-foreground'>
+                  UPI:{" "}
+                  <span className='font-semibold text-foreground'>
+                    ₹{stats?.upi.toFixed(2)}
+                  </span>
                 </span>
                 <span className='text-sm font-bold text-foreground'>
                   Total: ₹{stats?.total.toFixed(2)}

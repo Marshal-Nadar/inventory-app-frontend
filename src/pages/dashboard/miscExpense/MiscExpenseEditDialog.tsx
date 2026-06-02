@@ -21,6 +21,7 @@ import {
 } from "@/services/expenseTypeService";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { NumberInput } from "@/components/ui/number-input";
 
 const PAYMENT_METHODS = [
   { value: "cash", label: "Cash" },
@@ -171,12 +172,11 @@ export const MiscExpenseEditDialog = ({
 
           <div className='space-y-2'>
             <Label>Amount (₹)</Label>
-            <Input
-              type='number'
-              min='0.01'
-              step='0.01'
+            <NumberInput
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={setAmount}
+              placeholder='0.00'
+              min='0'
               required
             />
           </div>

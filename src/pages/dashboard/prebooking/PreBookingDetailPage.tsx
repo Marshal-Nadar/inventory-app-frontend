@@ -39,6 +39,7 @@ import { productService, type Product } from "@/services/productService";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { NumberInput } from "@/components/ui/number-input";
 
 const PAYMENT_METHODS = [
   { value: "cash", label: "Cash" },
@@ -572,14 +573,10 @@ export const PreBookingDetailPage = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Input
-                            type='number'
+                          <NumberInput
                             min='0'
-                            step='0.01'
                             value={item.product_discount}
-                            onChange={(e) =>
-                              updateDiscount(index, e.target.value)
-                            }
+                            onChange={(value) => updateDiscount(index, value)}
                             className='w-24'
                           />
                         </TableCell>
@@ -618,12 +615,10 @@ export const PreBookingDetailPage = () => {
                     <span className='text-muted-foreground'>
                       Overall Discount
                     </span>
-                    <Input
-                      type='number'
+                    <NumberInput
                       min='0'
-                      step='0.01'
                       value={overallDiscount}
-                      onChange={(e) => setOverallDiscount(e.target.value)}
+                      onChange={setOverallDiscount}
                       className='w-28 h-8 text-right'
                     />
                   </div>
@@ -838,7 +833,7 @@ export const PreBookingDetailPage = () => {
                   max ₹{Number(order.pending_balance).toFixed(2)}
                 </span>
               </Label>
-              <Input
+              {/* <Input
                 type='number'
                 min='0.01'
                 step='0.01'
@@ -848,6 +843,13 @@ export const PreBookingDetailPage = () => {
                 placeholder='0.00'
                 autoFocus
                 required
+              /> */}
+              <NumberInput
+                min='0.01'
+                value={paymentAmount}
+                onChange={setPaymentAmount}
+                placeholder='0.00'
+                autoFocus
               />
             </div>
 

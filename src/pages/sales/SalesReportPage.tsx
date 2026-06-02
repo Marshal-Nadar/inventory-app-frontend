@@ -258,11 +258,7 @@ export const SalesReportPage = () => {
             <span
               className={cn(
                 "font-bold text-sm",
-                val === 0
-                  ? "text-green-600"
-                  : val > 0
-                    ? "text-orange-600"
-                    : "text-destructive",
+                val >= 0 ? "text-green-600" : "text-destructive",
               )}
             >
               {val > 0 ? "+" : ""}
@@ -443,11 +439,9 @@ export const SalesReportPage = () => {
                 <p
                   className={cn(
                     "text-xl font-bold",
-                    stats.totalDifference === 0
+                    stats.totalDifference >= 0
                       ? "text-green-600"
-                      : stats.totalDifference > 0
-                        ? "text-orange-600"
-                        : "text-destructive",
+                      : "text-destructive",
                   )}
                 >
                   {stats.totalDifference > 0 ? "+" : ""}
@@ -458,7 +452,7 @@ export const SalesReportPage = () => {
             <Card>
               <CardContent className='pt-3 space-y-1'>
                 <p className='text-xs text-muted-foreground'>Total Cash</p>
-                <p className='text-xl font-bold text-orange-600'>
+                <p className='text-xl font-bold text-foreground'>
                   ₹{stats.totalCash.toFixed(2)}
                 </p>
               </CardContent>
@@ -466,7 +460,7 @@ export const SalesReportPage = () => {
             <Card>
               <CardContent className='pt-3 space-y-1'>
                 <p className='text-xs text-muted-foreground'>Total UPI</p>
-                <p className='text-xl font-bold text-blue-600'>
+                <p className='text-xl font-bold text-foreground'>
                   ₹{stats.totalUpi.toFixed(2)}
                 </p>
               </CardContent>

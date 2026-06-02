@@ -121,11 +121,7 @@ export const SalesViewDialog = ({ open, onClose, record }: Props) => {
               <span
                 className={cn(
                   "text-sm font-bold",
-                  difference === 0
-                    ? "text-green-600"
-                    : difference > 0
-                      ? "text-orange-600"
-                      : "text-destructive",
+                  difference >= 0 ? "text-green-600" : "text-destructive",
                 )}
               >
                 {difference > 0 ? "+" : ""}

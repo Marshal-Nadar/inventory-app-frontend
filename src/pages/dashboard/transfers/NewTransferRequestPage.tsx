@@ -23,6 +23,7 @@ import { ArrowLeftRight, Plus, X } from "lucide-react";
 import { StockBadge } from "@/components/common/StockBadge";
 import { Separator } from "@/components/ui/separator";
 import { branchService, type Branch } from "@/services/branchService";
+import { NumberInput } from "@/components/ui/number-input";
 
 const METRICS = [
   { value: "kg", label: "Kilogram (kg)" },
@@ -218,16 +219,15 @@ export const NewTransferRequestPage = () => {
                         searchPlaceholder='Search...'
                         emptyText='No materials available.'
                       />
-                      <Input
-                        type='number'
+                      <NumberInput
                         min='0.001'
-                        step='0.001'
                         placeholder='0'
                         value={row.quantity}
-                        onChange={(e) =>
-                          updateRow(index, "quantity", e.target.value)
+                        onChange={(value) =>
+                          updateRow(index, "quantity", value)
                         }
                       />
+
                       <Select
                         value={row.metric}
                         onValueChange={(val) => updateRow(index, "metric", val)}

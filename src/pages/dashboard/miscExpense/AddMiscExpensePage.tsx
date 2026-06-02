@@ -16,6 +16,7 @@ import { useAppSelector } from "@/hooks/useAppSelector";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Receipt } from "lucide-react";
+import { NumberInput } from "@/components/ui/number-input";
 
 const PAYMENT_METHODS = [
   { value: "cash", label: "Cash" },
@@ -218,14 +219,12 @@ export const AddMiscExpensePage = () => {
             {/* Amount */}
             <div className='space-y-2'>
               <Label htmlFor='amount'>Cost (₹)</Label>
-              <Input
+              <NumberInput
                 id='amount'
-                type='number'
-                min='0.01'
-                step='0.01'
-                placeholder='0.00'
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={setAmount}
+                placeholder='0.00'
+                min='0'
                 required
               />
             </div>

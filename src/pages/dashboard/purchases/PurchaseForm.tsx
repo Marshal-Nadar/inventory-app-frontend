@@ -29,6 +29,7 @@ import {
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { toast } from "sonner";
 import { Combobox } from "@/components/common/Combobox";
+import { NumberInput } from "@/components/ui/number-input";
 
 const METRICS = [
   { value: "kg", label: "Kilogram (kg)" },
@@ -356,15 +357,11 @@ export const PurchaseForm = () => {
                   />
 
                   {/* Quantity */}
-                  <Input
-                    type='number'
+                  <NumberInput
                     min='0'
-                    step='0.001'
                     placeholder='0'
                     value={row.quantity}
-                    onChange={(e) =>
-                      updateRow(index, "quantity", e.target.value)
-                    }
+                    onChange={(value) => updateRow(index, "quantity", value)}
                   />
 
                   {/* Metric */}
@@ -385,14 +382,12 @@ export const PurchaseForm = () => {
                   </Select>
 
                   {/* Price per unit */}
-                  <Input
-                    type='number'
+                  <NumberInput
                     min='0'
-                    step='0.01'
                     placeholder='0.00'
                     value={row.price_per_unit}
-                    onChange={(e) =>
-                      updateRow(index, "price_per_unit", e.target.value)
+                    onChange={(value) =>
+                      updateRow(index, "price_per_unit", value)
                     }
                   />
 

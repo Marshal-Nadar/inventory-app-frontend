@@ -14,6 +14,7 @@ import {
   type RawMaterial,
 } from "@/services/rawMaterialService";
 import { toast } from "sonner";
+import { NumberInput } from "@/components/ui/number-input";
 
 interface Props {
   open: boolean;
@@ -79,14 +80,12 @@ export const RawMaterialStockEditDialog = ({
 
           <div className='space-y-2'>
             <Label htmlFor='minStock'>Minimum Stock ({material?.metric})</Label>
-            <Input
+            <NumberInput
               id='minStock'
-              type='number'
-              min='0'
-              step='0.001'
               value={minStock}
-              onChange={(e) => setMinStock(e.target.value)}
-              placeholder='e.g. 10'
+              onChange={setMinStock}
+              placeholder='0.00'
+              min='0'
               required
             />
             <p className='text-xs text-muted-foreground'>

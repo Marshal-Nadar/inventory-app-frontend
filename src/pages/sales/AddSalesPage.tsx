@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { Save, RefreshCw, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { NumberInput } from "@/components/ui/number-input";
 
 export const AddSalesPage = () => {
   const user = useAppSelector((state) => state.auth.user);
@@ -282,25 +283,21 @@ export const AddSalesPage = () => {
         <CardContent className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
           <div className='space-y-2'>
             <Label>PetPooja Total</Label>
-            <Input
-              type='number'
-              min='0'
-              step='0.01'
+            <NumberInput
               value={petpoojaTotal}
-              onChange={(e) => setPetpoojaTotal(e.target.value)}
+              onChange={setPetpoojaTotal}
               placeholder='0.00'
+              min='0'
             />
           </div>
 
           <div className='space-y-2'>
             <Label>NS Total</Label>
-            <Input
-              type='number'
-              min='0'
-              step='0.01'
+            <NumberInput
               value={nsTotal}
-              onChange={(e) => setNsTotal(e.target.value)}
+              onChange={setNsTotal}
               placeholder='0.00'
+              min='0'
             />
           </div>
 
@@ -331,25 +328,21 @@ export const AddSalesPage = () => {
         <CardContent className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
           <div className='space-y-2'>
             <Label>UPI</Label>
-            <Input
-              type='number'
-              min='0'
-              step='0.01'
+            <NumberInput
               value={upi}
-              onChange={(e) => setUpi(e.target.value)}
+              onChange={setUpi}
               placeholder='0.00'
+              min='0'
             />
           </div>
 
           <div className='space-y-2'>
             <Label>Cash</Label>
-            <Input
-              type='number'
-              min='0'
-              step='0.01'
+            <NumberInput
               value={cash}
-              onChange={(e) => setCash(e.target.value)}
+              onChange={setCash}
               placeholder='0.00'
+              min='0'
             />
           </div>
 
@@ -377,25 +370,21 @@ export const AddSalesPage = () => {
         <CardContent className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <div className='space-y-2'>
             <Label>Swiggy</Label>
-            <Input
-              type='number'
-              min='0'
-              step='0.01'
+            <NumberInput
               value={swiggy}
-              onChange={(e) => setSwiggy(e.target.value)}
+              onChange={setSwiggy}
               placeholder='0.00'
+              min='0'
             />
           </div>
 
           <div className='space-y-2'>
             <Label>Zomato</Label>
-            <Input
-              type='number'
-              min='0'
-              step='0.01'
+            <NumberInput
               value={zomato}
-              onChange={(e) => setZomato(e.target.value)}
+              onChange={setZomato}
               placeholder='0.00'
+              min='0'
             />
           </div>
         </CardContent>
@@ -441,11 +430,9 @@ export const AddSalesPage = () => {
               readOnly
               className={cn(
                 "cursor-not-allowed font-bold",
-                difference === 0
+                difference >= 0
                   ? "bg-green-50 text-green-600"
-                  : difference > 0
-                    ? "bg-orange-50 text-orange-600"
-                    : "bg-red-50 text-destructive",
+                  : "bg-red-50 text-destructive",
               )}
             />
           </div>

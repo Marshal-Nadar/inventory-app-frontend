@@ -53,6 +53,7 @@ import { productService, type Product } from "@/services/productService";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { toast } from "sonner";
+import { NumberInput } from "@/components/ui/number-input";
 
 const columnHelper = createColumnHelper<Product>();
 
@@ -299,15 +300,12 @@ export const ProductsPage = () => {
                 </div>
                 <div className='space-y-2'>
                   <Label htmlFor='pprice'>Price</Label>
-                  <Input
+                  <NumberInput
                     id='pprice'
-                    type='number'
                     min='0.01'
-                    step='0.01'
                     value={price}
-                    onChange={(e) => setPrice(e.target.value)}
+                    onChange={setPrice}
                     placeholder='0.00'
-                    required
                   />
                 </div>
                 <div className='space-y-2'>
@@ -460,13 +458,11 @@ export const ProductsPage = () => {
             </div>
             <div className='space-y-2'>
               <Label>Price</Label>
-              <Input
-                type='number'
-                min='0.01'
-                step='0.01'
+              <NumberInput
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={setPrice}
                 placeholder='0.00'
+                min='0'
                 required
               />
             </div>
