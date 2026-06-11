@@ -22,6 +22,7 @@ import {
   Package,
   IndianRupee,
   Clock,
+  AlertCircle,
 } from "lucide-react";
 import {
   dashboardService,
@@ -463,16 +464,77 @@ const AdminDashboard = () => {
                 path='/dashboard/prebooking/orders'
                 loading={loading}
               />
-              <AlertCard
-                title='Vendor Outstanding'
-                value={money(ops?.vendor_outstanding || 0)}
-                subtitle='pending payments'
-                icon={Wallet}
-                color='bg-pink-500/10 text-pink-600'
-                path='/dashboard/payments/pending'
-                loading={loading}
-                urgent
-              />
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Vendor Payment Stats */}
+      {isAdminLevel && (
+        <>
+          <Separator />
+          <div className='space-y-3'>
+            <div className='flex items-center justify-between'>
+              <h3 className='text-sm font-semibold text-foreground'>
+                Vendor Payments
+              </h3>
+              <Button
+                variant='ghost'
+                size='sm'
+                className='gap-1 text-xs h-7'
+                onClick={() => navigate("/dashboard/payments/pending")}
+              >
+                View Pending <ArrowRight className='w-3 h-3' />
+              </Button>
+            </div>
+            <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+              <Card>
+                <CardContent className='pt-4 space-y-1'>
+                  <p className='text-xs text-muted-foreground'>
+                    Total Purchase Amount
+                  </p>
+                  {loading ? (
+                    <Skeleton className='h-7 w-24' />
+                  ) : (
+                    <p className='text-2xl font-bold text-foreground'>
+                      {money(stats?.vendor_stats?.total_purchase_amount || 0)}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className='pt-4 space-y-1'>
+                  <p className='text-xs text-muted-foreground'>
+                    Total Amount Paid
+                  </p>
+                  {loading ? (
+                    <Skeleton className='h-7 w-24' />
+                  ) : (
+                    <p className='text-2xl font-bold'>
+                      {money(stats?.vendor_stats?.total_amount_paid || 0)}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className='pt-4 space-y-1'>
+                  <div className='flex items-center justify-between'>
+                    <p className='text-xs text-muted-foreground'>
+                      Total Amount Due
+                    </p>
+                    {Number(stats?.vendor_stats?.total_amount_due || 0) > 0 && (
+                      <AlertCircle className='w-4 h-4 text-destructive' />
+                    )}
+                  </div>
+                  {loading ? (
+                    <Skeleton className='h-7 w-24' />
+                  ) : (
+                    <p className={cn("text-2xl font-bold")}>
+                      {money(stats?.vendor_stats?.total_amount_due || 0)}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </>

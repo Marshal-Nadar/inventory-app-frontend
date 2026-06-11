@@ -56,7 +56,14 @@ export const navItems: NavItem[] = [
     label: "Dashboard",
     path: "/dashboard",
     icon: LayoutDashboard,
-    roles: ["admin", "manager", "cashier", "kitchen", "super_admin"],
+    roles: [
+      "admin",
+      "manager",
+      "storekeeper",
+      "cashier",
+      "kitchen",
+      "super_admin",
+    ],
   },
   {
     label: "Restaurants",

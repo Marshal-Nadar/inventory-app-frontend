@@ -5,6 +5,11 @@ export interface DashboardStats {
   branches: { total: number; active: number };
   users: { total: number; active: number };
   roles: { total: number; custom: number };
+  vendor_stats: {
+    total_purchase_amount: number;
+    total_amount_paid: number;
+    total_amount_due: number;
+  };
   operations: {
     pending_transfers: number;
     out_of_stock: number;
@@ -12,7 +17,6 @@ export interface DashboardStats {
     pending_prebookings: number;
     confirmed_prebookings: number;
     today_deliveries: number;
-    vendor_outstanding: number;
   };
   today_sales: {
     branches_reported: number;
