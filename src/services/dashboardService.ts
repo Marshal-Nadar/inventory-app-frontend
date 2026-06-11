@@ -26,6 +26,12 @@ export interface DashboardStats {
     total_cost: number;
     vendor_name: string;
   }[];
+  cumulative_sales: {
+    total_net_sales: number;
+    total_net_counter: number;
+    total_cash: number;
+    total_upi: number;
+  };
 }
 
 export interface RestaurantStat {

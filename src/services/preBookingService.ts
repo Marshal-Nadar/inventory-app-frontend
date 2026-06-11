@@ -2,8 +2,8 @@ import api from "@/lib/axios";
 import { PaginatedResponse } from "./purchaseService";
 
 export interface PreBookingItem {
-  id: number;
-  booking_id: number;
+  id?: number;
+  booking_id?: number;
   product_id: number;
   product_name: string;
   unit_price: number;
@@ -36,14 +36,12 @@ export interface PreBooking {
   delivery_time: string;
   remarks: string;
   notes: string;
+  created_by: number;
   created_by_name: string;
   created_at: string;
-  // items?: PreBookingItem[];
+  updated_at: string;
+  items?: PreBookingItem[];
   payment_history?: PreBookingPayment[];
-  items?: {
-    product_name: string;
-    quantity: number;
-  }[];
 }
 
 export interface CreatePreBookingPayload {

@@ -243,6 +243,16 @@ code,
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Sidebar CSS */
+/* Softer sidebar border */
+[data-slot="sidebar-container"] {
+  border-right-color: oklch(0.922 0 0 / 50%) !important;
+}
+
+.dark [data-slot="sidebar-container"] {
+  border-right-color: oklch(1 0 0 / 6%) !important;
+}
+
 /* ─── Theme Presets ─────────────────────────────── */
 
 /* Lake View — blue */

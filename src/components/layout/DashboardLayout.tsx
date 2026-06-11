@@ -69,13 +69,12 @@ export const DashboardLayout = () => {
     <SidebarProvider open={isOpen} onOpenChange={handleOpenChange}>
       <AppSidebar />
       <SidebarInset>
-        <header className='flex h-14 shrink-0 items-center gap-2 border-b px-4 sticky top-0 z-10 bg-background'>
+        <header className='flex h-14 shrink-0 items-center gap-2 border-b border-border/20 px-4 sticky top-0 z-10 bg-background'>
           <SidebarTrigger className='-ml-1' />
-          <Separator orientation='vertical' className='mr-2 h-4' />
           <div className='flex flex-1 items-center justify-between'>
-            <h1 className='text-sm font-semibold text-foreground'>
+            <h2 className='text-sm font-semibold text-foreground !mb-0'>
               {pageTitle}
-            </h1>
+            </h2>
             <div className='flex items-center gap-3'>
               {user && (
                 <span className='text-xs text-muted-foreground hidden sm:block'>
