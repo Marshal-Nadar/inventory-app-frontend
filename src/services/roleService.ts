@@ -27,6 +27,11 @@ export const roleService = {
     return res.data.data;
   },
 
+  getByRestaurant: async (restaurantId: number): Promise<Role[]> => {
+    const res = await api.get(`/roles/restaurant/${restaurantId}`);
+    return res.data.data;
+  },
+
   getById: async (id: number): Promise<Role> => {
     const res = await api.get(`/roles/${id}`);
     return res.data.data;

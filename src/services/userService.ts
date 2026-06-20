@@ -16,7 +16,7 @@ export interface User {
 
 export interface CreateUserPayload {
   restaurant_id: number;
-  branch_id: number;
+  branch_id: number | null;
   role_id: number;
   name: string;
   email: string;
@@ -24,7 +24,7 @@ export interface CreateUserPayload {
 }
 
 export interface UpdateUserPayload {
-  branch_id: number;
+  branch_id: number | null;
   role_id: number;
   name: string;
   email: string;

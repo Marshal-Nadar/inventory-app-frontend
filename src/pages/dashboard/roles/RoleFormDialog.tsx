@@ -80,7 +80,9 @@ export const RoleFormDialog = ({
     setError("");
 
     // for non super admin use their restaurant_id directly
-    const finalRestaurantId = isSuperAdmin ? Number(restaurantId) : user?.id;
+    const finalRestaurantId = isSuperAdmin
+      ? Number(restaurantId)
+      : user?.restaurant_id;
 
     if (!finalRestaurantId) {
       setError("Please select a restaurant");

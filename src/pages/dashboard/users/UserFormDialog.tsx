@@ -18,6 +18,10 @@ import {
 } from "@/components/ui/select";
 import { roleService, type Role } from "@/services/roleService";
 import { branchService, type Branch } from "@/services/branchService";
+import {
+  restaurantService,
+  type Restaurant,
+} from "@/services/restaurantService";
 import type {
   User,
   CreateUserPayload,
@@ -42,32 +46,61 @@ export const UserFormDialog = ({
 }: Props) => {
   const authUser = useAppSelector((state) => state.auth.user);
   const isEdit = !!editingUser;
+  const isSuperAdmin = authUser?.is_super_admin;
 
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [restaurantId, setRestaurantId] = useState("");
   const [roleId, setRoleId] = useState("");
   const [branchId, setBranchId] = useState("");
   const [error, setError] = useState("");
 
+  // load restaurants — super admin only
   useEffect(() => {
-    if (open) {
-      roleService.getAll().then(setRoles);
-      branchService.getAll().then((data) => {
-        setBranches(data.filter((b) => b.is_active));
-      });
+    if (open && isSuperAdmin) {
+      restaurantService.getAll().then(setRestaurants);
     }
-  }, [open]);
+  }, [open, isSuperAdmin]);
+
+  // determine effective restaurant id
+  const effectiveRestaurantId = isSuperAdmin
+    ? restaurantId
+    : String(authUser?.restaurant_id || "");
+
+  // load roles + branches whenever effective restaurant changes
+  useEffect(() => {
+    if (!open) return;
+    if (!effectiveRestaurantId) {
+      setRoles([]);
+      setBranches([]);
+      return;
+    }
+
+    roleService.getByRestaurant(Number(effectiveRestaurantId)).then(setRoles);
+    branchService
+      .getAll()
+      .then((data) =>
+        setBranches(
+          data.filter(
+            (b) =>
+              b.is_active && String(b.restaurant_id) === effectiveRestaurantId,
+          ),
+        ),
+      );
+  }, [open, effectiveRestaurantId]);
 
   useEffect(() => {
     if (editingUser) {
       setName(editingUser.name);
       setEmail(editingUser.email);
       setRoleId(String(editingUser.role_id));
-      setBranchId(String(editingUser.branch_id));
+      setBranchId(editingUser.branch_id ? String(editingUser.branch_id) : "");
+      setRestaurantId(String(editingUser.restaurant_id));
       setPassword("");
     } else {
       setName("");
@@ -75,6 +108,7 @@ export const UserFormDialog = ({
       setPassword("");
       setRoleId("");
       setBranchId("");
+      setRestaurantId("");
     }
     setError("");
   }, [editingUser, open]);
@@ -83,13 +117,22 @@ export const UserFormDialog = ({
     e.preventDefault();
     setError("");
 
+    if (isSuperAdmin && !restaurantId) {
+      setError("Please select a restaurant");
+      return;
+    }
+    if (!roleId) {
+      setError("Please select a role");
+      return;
+    }
+
     try {
       if (isEdit) {
         await onSubmit({
           name,
           email,
           role_id: Number(roleId),
-          branch_id: Number(branchId),
+          branch_id: branchId ? Number(branchId) : null,
         } as UpdateUserPayload);
       } else {
         await onSubmit({
@@ -97,8 +140,10 @@ export const UserFormDialog = ({
           email,
           password,
           role_id: Number(roleId),
-          branch_id: Number(branchId),
-          restaurant_id: authUser!.restaurant_id,
+          branch_id: branchId ? Number(branchId) : null,
+          restaurant_id: isSuperAdmin
+            ? Number(restaurantId)
+            : authUser!.restaurant_id,
         } as CreateUserPayload);
       }
     } catch (err: any) {
@@ -114,6 +159,25 @@ export const UserFormDialog = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className='space-y-4 py-2'>
+          {/* Restaurant — super admin only, create only */}
+          {isSuperAdmin && !isEdit && (
+            <div className='space-y-2'>
+              <Label>Restaurant</Label>
+              <Select value={restaurantId} onValueChange={setRestaurantId}>
+                <SelectTrigger>
+                  <SelectValue placeholder='Select restaurant' />
+                </SelectTrigger>
+                <SelectContent>
+                  {restaurants.map((r) => (
+                    <SelectItem key={r.id} value={String(r.id)}>
+                      {r.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className='space-y-2'>
             <Label htmlFor='name'>Full Name</Label>
             <Input
@@ -151,11 +215,17 @@ export const UserFormDialog = ({
             </div>
           )}
 
+          {/* Branch — optional */}
           <div className='space-y-2'>
-            <Label>Branch</Label>
-            <Select value={branchId} onValueChange={setBranchId} required>
+            <Label>
+              Branch
+              <span className='text-xs text-muted-foreground ml-2'>
+                (optional — leave empty for restaurant admin)
+              </span>
+            </Label>
+            <Select value={branchId} onValueChange={setBranchId}>
               <SelectTrigger>
-                <SelectValue placeholder='Select branch' />
+                <SelectValue placeholder='No branch (Restaurant Admin)' />
               </SelectTrigger>
               <SelectContent>
                 {branches.map((b) => (
@@ -167,9 +237,10 @@ export const UserFormDialog = ({
             </Select>
           </div>
 
+          {/* Role */}
           <div className='space-y-2'>
             <Label>Role</Label>
-            <Select value={roleId} onValueChange={setRoleId} required>
+            <Select value={roleId} onValueChange={setRoleId}>
               <SelectTrigger>
                 <SelectValue placeholder='Select role' />
               </SelectTrigger>
