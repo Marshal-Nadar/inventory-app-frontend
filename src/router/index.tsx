@@ -38,6 +38,9 @@ import { PrintSettingsPage } from "@/pages/dashboard/settings/PrintSettingsPage"
 import { StockLedgerPage } from "@/pages/dashboard/stockLedger/StockLedgerPage";
 import { VendorReportPage } from "@/pages/dashboard/purchases/VendorReportPage";
 import { ChangePasswordPage } from "@/pages/dashboard/settings/ChangePasswordPage";
+import { BillingPage } from "@/pages/dashboard/billing/BillingPage";
+import { BillDetailPage } from "@/pages/dashboard/billing/BillDetailPage";
+import { AllBillingPage } from "@/pages/dashboard/billing/AllBillingPage";
 
 export const router = createBrowserRouter([
   {
@@ -88,6 +91,9 @@ export const router = createBrowserRouter([
       { path: "settings/appearance", element: <SettingsPage /> },
       { path: "settings/print", element: <PrintSettingsPage /> },
       { path: "settings/change-password", element: <ChangePasswordPage /> },
+      { path: "billing/new", element: <BillingPage /> },
+      { path: "billing/all", element: <AllBillingPage /> },
+      { path: "billing/:id", element: <BillDetailPage /> },
     ],
   },
   {

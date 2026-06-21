@@ -72,13 +72,6 @@ export const navItems: NavItem[] = [
     roles: ["super_admin"],
     superAdminOnly: true,
   },
-  {
-    label: "Branches",
-    path: "/dashboard/branches",
-    icon: GitBranch,
-    roles: ["admin", "manager"],
-    hideForSuperAdmin: true,
-  },
 
   {
     label: "Daily Sales",
@@ -96,6 +89,25 @@ export const navItems: NavItem[] = [
         path: "/dashboard/sales/report",
         icon: FileText,
         // roles: ["admin", "storekeeper", "super_admin"],
+      },
+    ],
+  },
+
+  {
+    label: "Billing",
+    path: "/dashboard/billing",
+    icon: Receipt,
+    roles: ["admin", "manager", "storekeeper"],
+    children: [
+      {
+        label: "Add Billing",
+        path: "/dashboard/billing/new",
+        icon: Plus,
+      },
+      {
+        label: "All Billing",
+        path: "/dashboard/billing/all",
+        icon: List,
       },
     ],
   },
@@ -130,18 +142,7 @@ export const navItems: NavItem[] = [
       },
     ],
   },
-  {
-    label: "Users",
-    path: "/dashboard/users",
-    icon: Users,
-    roles: ["admin", "super_admin"],
-  },
-  {
-    label: "Roles",
-    path: "/dashboard/roles",
-    icon: ShieldCheck,
-    roles: ["admin", "super_admin"],
-  },
+
   {
     label: "Misc Expense",
     path: "/dashboard/misc-expense",
@@ -304,6 +305,27 @@ export const navItems: NavItem[] = [
         icon: Clock,
       },
     ],
+  },
+
+  {
+    label: "Users",
+    path: "/dashboard/users",
+    icon: Users,
+    roles: ["admin", "super_admin"],
+  },
+  {
+    label: "Roles",
+    path: "/dashboard/roles",
+    icon: ShieldCheck,
+    roles: ["admin", "super_admin"],
+  },
+
+  {
+    label: "Branches",
+    path: "/dashboard/branches",
+    icon: GitBranch,
+    roles: ["admin", "manager"],
+    hideForSuperAdmin: true,
   },
 
   {
