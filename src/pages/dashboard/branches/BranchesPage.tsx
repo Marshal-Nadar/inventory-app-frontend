@@ -86,7 +86,7 @@ export const BranchesPage = () => {
     setFormLoading(true);
     try {
       await branchService.create({
-        restaurant_id: user!.restaurant_id,
+        restaurant_id: user!.restaurant_id ?? 0,
         ...data,
       });
       await fetchBranches();

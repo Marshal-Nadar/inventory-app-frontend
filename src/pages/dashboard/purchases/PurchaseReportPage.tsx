@@ -47,7 +47,7 @@ export const PurchaseReportPage = () => {
     setLoading(true);
     try {
       const data = await purchaseService.getVendorReport(
-        Number(vendorId),
+        vendorId,
         dateFrom.toISOString().split("T")[0], // Clean YYYY-MM-DD
         dateTo.toISOString().split("T")[0],
       );
