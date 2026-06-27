@@ -8,6 +8,8 @@ import { ArrowLeft, Printer, CheckCircle2 } from "lucide-react";
 import { billingService, type Bill } from "@/services/billingService";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { triggerReceiptPrint } from "@/hooks/usePrint";
+import { ReceiptPrintLayout } from "./ReceiptPrintLayout";
 
 export const BillDetailPage = () => {
   const { id } = useParams();
@@ -118,12 +120,17 @@ export const BillDetailPage = () => {
             </div>
           </div>
 
-          <Button variant='outline' className='w-full gap-2'>
+          <Button
+            variant='outline'
+            className='w-full gap-2'
+            onClick={() => triggerReceiptPrint()}
+          >
             <Printer className='w-4 h-4' />
             Print Receipt
           </Button>
         </CardContent>
       </Card>
+      {bill && <ReceiptPrintLayout bill={bill} />}
     </div>
   );
 };

@@ -465,3 +465,22 @@ input[type="number"] {
     width: 100%;
   }
 }
+
+@media print {
+  /* when printing the receipt, only show receipt area */
+  body.printing-receipt #print-area {
+    display: none !important;
+  }
+  body.printing-receipt #receipt-print-area {
+    display: block !important;
+  }
+
+  body.printing-receipt #receipt-print-area * {
+    visibility: visible;
+  }
+
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+}

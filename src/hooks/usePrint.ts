@@ -6,3 +6,15 @@ export const triggerPrint = () => {
     document.title = originalTitle; // restore after print
   }, 50);
 };
+
+export const triggerReceiptPrint = () => {
+  const originalTitle = document.title;
+  document.title = " ";
+  document.body.classList.add("printing-receipt");
+
+  setTimeout(() => {
+    window.print();
+    document.title = originalTitle;
+    document.body.classList.remove("printing-receipt");
+  }, 50);
+};
