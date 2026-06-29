@@ -17,6 +17,7 @@ import { ThemeToggle } from "@/components/common/ThemeToggle";
 import axios from "axios";
 import { setPrintSettings } from "@/store/slices/authSlice";
 import { printSettingsService } from "@/services/printSettingsService";
+import api from "@/lib/axios";
 
 export const LoginPage = () => {
   const dispatch = useAppDispatch();
@@ -32,10 +33,10 @@ export const LoginPage = () => {
     setError("");
     setLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:3001/api/auth/login",
-        { email, password },
-      );
+      const response = await api.post("/auth/login", {
+        email,
+        password,
+      });
       const { token, user } = response.data.data;
       dispatch(setCredentials({ token, user }));
 
