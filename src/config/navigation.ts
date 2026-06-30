@@ -93,24 +93,24 @@ export const navItems: NavItem[] = [
     ],
   },
 
-  {
-    label: "Billing",
-    path: "/dashboard/billing",
-    icon: Receipt,
-    roles: ["admin", "manager", "storekeeper"],
-    children: [
-      {
-        label: "Add Billing",
-        path: "/dashboard/billing/new",
-        icon: Plus,
-      },
-      {
-        label: "All Billing",
-        path: "/dashboard/billing/all",
-        icon: List,
-      },
-    ],
-  },
+  // {
+  //   label: "Billing",
+  //   path: "/dashboard/billing",
+  //   icon: Receipt,
+  //   roles: ["admin", "manager", "storekeeper"],
+  //   children: [
+  //     {
+  //       label: "Add Billing",
+  //       path: "/dashboard/billing/new",
+  //       icon: Plus,
+  //     },
+  //     {
+  //       label: "All Billing",
+  //       path: "/dashboard/billing/all",
+  //       icon: List,
+  //     },
+  //   ],
+  // },
 
   {
     label: "Pre-Booking",
